@@ -1,0 +1,1130 @@
+<!DOCTYPE html>
+<html lang="en">
+    
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Municipal Sanitation Portal - Secure Login</title>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.158.0/build/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.158.0/examples/js/loaders/GLTFLoader.js"></script>
+
+    <style>
+        /* ==========================================================================
+           1. RESET & CORE VARIABLES
+           ========================================================================== */
+        :root {
+            --color-bg: #f4f7f6;
+            --color-white: #ffffff;
+            --color-primary: #2c3e50;
+            --color-accent-blue: #3498db;
+            --color-accent-green: #27ae60;
+            --color-accent-orange: #e67e22;
+            --color-accent-red: #e74c3c;
+            --color-text-main: #333333;
+            --color-text-muted: #7f8c8d;
+            --glass-bg: rgba(255, 255, 255, 0.85);
+            --glass-border: rgba(255, 255, 255, 0.9);
+            --shadow-soft: 0 10px 30px rgba(0, 0, 0, 0.1);
+            --shadow-inset: inset 0 2px 4px rgba(0,0,0,0.06);
+            
+            --font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            --depth-factor: 2; /* Multiplier for 3D depth */
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            outline: none;
+        }
+
+        body, html {
+            width: 100%;
+            height: 100%;
+            overflow: hidden; /* Prevent scroll, scene handles interaction */
+            font-family: var(--font-family);
+            background-color: var(--color-bg);
+            color: var(--color-text-main);
+        }
+
+        /* ==========================================================================
+           2. 3D PARALLAX SCENE CONTAINER
+           ========================================================================== */
+        .scene-container {
+            position: relative;
+            width: 100vw;
+            height: 100vh;
+            perspective: 1200px; /* The camera distance */
+            overflow: hidden;
+            background: linear-gradient(to bottom, #eef2f3 0%, #ffffff 100%);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .parallax-stage {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            transform-style: preserve-3d;
+            transition: transform 0.1s cubic-bezier(0.01, 0.68, 0.19, 0.99);
+        }
+
+        /* Generic Layer Class */
+        .layer {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            transform-style: preserve-3d;
+            pointer-events: none; /* Let clicks pass through to login if needed */
+            display: flex;
+            align-items: flex-end; /* Align items to bottom for ground placement */
+            justify-content: center;
+        }
+
+        /* ==========================================================================
+           3. ILLUSTRATIONS - PURE CSS ART (Municipal Theme)
+           ========================================================================== */
+        
+        /* --- 3.1 Sky & Background --- */
+        .layer-sky {
+            z-index: 1;
+        }
+        .cloud {
+            position: absolute;
+            background: #fff;
+            border-radius: 50px;
+            box-shadow: 0 8px 15px rgba(0,0,0,0.05);
+            animation: floatCloud 40s linear infinite;
+        }
+        .cloud::after, .cloud::before {
+            content: '';
+            position: absolute;
+            background: inherit;
+            border-radius: 50%;
+        }
+        /* Cloud 1 */
+        .c1 { width: 120px; height: 40px; top: 15%; left: 10%; opacity: 0.9; }
+        .c1::after { width: 50px; height: 50px; top: -25px; left: 20px; }
+        .c1::before { width: 40px; height: 40px; top: -15px; left: 55px; }
+        /* Cloud 2 */
+        .c2 { width: 160px; height: 50px; top: 25%; right: 15%; opacity: 0.8; animation-duration: 60s; animation-direction: reverse; }
+        .c2::after { width: 70px; height: 70px; top: -35px; left: 25px; }
+        .c2::before { width: 50px; height: 50px; top: -20px; left: 80px; }
+
+        @keyframes floatCloud {
+            0% { transform: translateX(0) translateZ(-500px); }
+            50% { transform: translateX(50px) translateZ(-500px); }
+            100% { transform: translateX(0) translateZ(-500px); }
+        }
+
+        /* --- 3.2 City Skyline (Back) --- */
+        .layer-city {
+            z-index: 2;
+            bottom: 10%;
+            width: 100%;
+            justify-content: space-around;
+            align-items: flex-end;
+            transform: translateZ(-200px) scale(1.2);
+            opacity: 0.8;
+        }
+        .building {
+            background: #dfe6e9;
+            position: relative;
+            border-top-left-radius: 4px;
+            border-top-right-radius: 4px;
+            box-shadow: 0 0 20px rgba(0,0,0,0.02);
+        }
+        .win-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, 8px);
+            gap: 4px;
+            padding: 10px;
+        }
+        .window {
+            width: 8px;
+            height: 12px;
+            background: #b2bec3;
+            border-radius: 1px;
+        }
+        .window.lit { background: #81ecec; box-shadow: 0 0 4px #81ecec; }
+        .b1 { width: 120px; height: 250px; }
+        .b2 { width: 100px; height: 180px; margin-bottom: 20px; }
+        .b3 { width: 140px; height: 320px; }
+        .b4 { width: 90px; height: 150px; margin-bottom: 40px; }
+        .b5 { width: 130px; height: 280px; }
+
+        /* --- 3.3 Municipal Truck (Mid-ground) --- */
+        .layer-truck {
+            z-index: 3;
+            bottom: 12%;
+            transform: translateZ(0px);
+            justify-content: flex-end; /* Place truck to right */
+            padding-right: 15%;
+        }
+
+        .garbage-truck {
+            position: relative;
+            width: 320px;
+            height: 200px;
+            /* Bouncing animation */
+            animation: suspension 2s ease-in-out infinite;
+        }
+
+        @keyframes suspension {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-3px); }
+        }
+
+        /* Truck Chassis */
+        .truck-body {
+            position: absolute;
+            bottom: 35px;
+            left: 0;
+            width: 100%;
+            height: 130px;
+            background: #fff;
+            border-radius: 10px 20px 5px 5px;
+            box-shadow: inset -5px -5px 15px rgba(0,0,0,0.1), 10px 10px 20px rgba(0,0,0,0.1);
+            z-index: 2;
+            overflow: hidden;
+        }
+        /* Municipal Striping */
+        .truck-stripe {
+            position: absolute;
+            top: 40%;
+            width: 100%;
+            height: 15px;
+            background: var(--color-accent-green);
+        }
+        .truck-stripe::before {
+            content: '';
+            position: absolute;
+            top: 15px;
+            width: 100%;
+            height: 5px;
+            background: var(--color-accent-orange);
+        }
+        /* Cabin */
+        .truck-cabin {
+            position: absolute;
+            bottom: 35px;
+            right: 0;
+            width: 100px;
+            height: 100px;
+            background: #fff;
+            border-radius: 10px;
+            box-shadow: inset 2px -2px 5px rgba(0,0,0,0.1);
+            z-index: 3;
+        }
+        .truck-window {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            width: 50px;
+            height: 40px;
+            background: #74b9ff;
+            border-radius: 0 10px 0 5px;
+            border: 2px solid #fff;
+        }
+        /* Text */
+        .municipal-text {
+            position: absolute;
+            top: 15px;
+            left: 20px;
+            font-size: 10px;
+            font-weight: bold;
+            color: #636e72;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        /* Wheels */
+        .wheel {
+            position: absolute;
+            bottom: 0;
+            width: 40px;
+            height: 40px;
+            background: #2d3436;
+            border-radius: 50%;
+            border: 3px solid #b2bec3;
+            z-index: 4;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            animation: spin 2s linear infinite;
+        }
+        .wheel::after {
+            content: '';
+            width: 20px;
+            height: 20px;
+            background: #636e72;
+            border-radius: 50%;
+            border: 2px dashed #b2bec3;
+        }
+        .w1 { left: 40px; }
+        .w2 { left: 100px; }
+        .w3 { right: 20px; }
+
+        @keyframes spin {
+            100% { transform: rotate(360deg); }
+        }
+
+        /* --- 3.4 Sanitation Workers (Foreground) --- */
+        .layer-workers {
+            z-index: 4;
+            bottom: 5%;
+            width: 100%;
+            justify-content: space-between;
+            padding: 0 10%;
+            transform: translateZ(50px);
+        }
+
+        .worker {
+            position: relative;
+            width: 120px;
+            height: 180px;
+            cursor: pointer;
+            transition: transform 0.3s ease;
+        }
+        
+        .worker:hover {
+            transform: translateY(-10px) scale(1.05);
+        }
+
+        .worker-body {
+            position: absolute;
+            bottom: 0;
+            width: 60px;
+            height: 90px;
+            background: #3498db; /* Blue Uniform */
+            left: 30px;
+            border-radius: 20px 20px 0 0;
+        }
+        /* Safety Vest */
+        .worker-vest {
+            position: absolute;
+            top: 20px;
+            left: 5px;
+            width: 50px;
+            height: 50px;
+            background: var(--color-accent-orange);
+            clip-path: polygon(20% 0%, 80% 0%, 100% 100%, 0% 100%);
+        }
+        .worker-head {
+            position: absolute;
+            top: 30px;
+            left: 35px;
+            width: 50px;
+            height: 50px;
+            background: #ffcccc;
+            border-radius: 50%;
+            z-index: 2;
+        }
+        /* Helmet */
+        .worker-helmet {
+            position: absolute;
+            top: 20px;
+            left: 30px;
+            width: 60px;
+            height: 35px;
+            background: #f1c40f;
+            border-radius: 30px 30px 0 0;
+            z-index: 3;
+        }
+        /* Arm with Broom */
+        .worker-arm {
+            position: absolute;
+            top: 75px;
+            left: 70px;
+            width: 15px;
+            height: 60px;
+            background: #3498db;
+            border-radius: 10px;
+            transform-origin: top center;
+            animation: sweep 2s ease-in-out infinite alternate;
+            z-index: 1;
+        }
+        .broom-handle {
+            position: absolute;
+            top: -40px;
+            left: 2px;
+            width: 6px;
+            height: 120px;
+            background: #8d6e63;
+            transform: rotate(15deg);
+        }
+        .broom-bristles {
+            position: absolute;
+            bottom: -25px;
+            left: -10px;
+            width: 30px;
+            height: 30px;
+            background: #e67e22;
+            border-radius: 5px 5px 15px 15px;
+        }
+        
+        /* Different Animation for worker 2 */
+        .worker-2 .worker-arm {
+            animation-delay: 1s;
+        }
+        
+        @keyframes sweep {
+            from { transform: rotate(-20deg); }
+            to { transform: rotate(20deg); }
+        }
+
+        /* --- 3.5 Ground/Street --- */
+        .layer-ground {
+            z-index: 5;
+            bottom: -50px;
+            transform: translateZ(100px);
+            height: 150px;
+            background: #fff;
+            box-shadow: 0 -10px 20px rgba(0,0,0,0.05);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .road-line {
+            width: 100%;
+            height: 0;
+            border-top: 4px dashed #bdc3c7;
+            opacity: 0.5;
+        }
+
+        /* ==========================================================================
+           4. LOGIN CARD (Glassmorphism)
+           ========================================================================== */
+        .login-wrapper {
+            position: relative;
+            z-index: 10;
+            display: flex;
+            width: 100%;
+            align-items: center;
+            justify-content: center;
+    pointer-events: auto;
+            max-width: 420px;
+            padding: 20px;
+            perspective: 1000px;
+        }
+
+
+        .login-card {
+            background: var(--glass-bg);
+            backdrop-filter: blur(12px);
+            transform-origin: center center;
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid var(--glass-border);
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: var(--shadow-soft);
+            transform-style: preserve-3d;
+            transition: transform 0.2s ease-out, box-shadow 0.3s ease;
+        }
+        
+
+        /* 3D Tilt effect on hover */
+        .login-card:hover {
+            box-shadow: 0 15px 40px rgba(52, 152, 219, 0.15);
+        }
+
+        .login-header {
+            text-align: center;
+            margin-bottom: 30px;
+            transform: translateZ(20px);
+        }
+
+        .logo-circle {
+            width: 70px;
+            height: 70px;
+            background: var(--color-primary);
+            border-radius: 50%;
+            margin: 0 auto 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #fff;
+            font-size: 32px;
+            box-shadow: 0 5px 15px rgba(44, 62, 80, 0.3);
+        }
+
+        .login-header h2 {
+            color: var(--color-primary);
+            font-size: 24px;
+            margin-bottom: 5px;
+        }
+
+        .login-header p {
+            color: var(--color-text-muted);
+            font-size: 14px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+            position: relative;
+            transform: translateZ(10px);
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: var(--color-primary);
+            font-size: 13px;
+            font-weight: 600;
+        }
+
+        .input-wrapper {
+            position: relative;
+        }
+
+        .input-wrapper i {
+            position: absolute;
+            left: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--color-accent-blue);
+            font-size: 14px;
+            transition: color 0.3s;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 12px 15px 12px 40px;
+            border: 2px solid #dfe6e9;
+            border-radius: 10px;
+            font-size: 14px;
+            color: var(--color-text-main);
+            background: rgba(255,255,255,0.9);
+            transition: all 0.3s ease;
+        }
+
+        .form-control:focus {
+            border-color: var(--color-accent-blue);
+            box-shadow: 0 0 0 4px rgba(52, 152, 219, 0.1);
+        }
+        
+        .form-control:focus + i {
+            color: var(--color-primary);
+        }
+
+        .form-options {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
+            font-size: 13px;
+            transform: translateZ(5px);
+        }
+
+        .checkbox-group {
+            display: flex;
+            align-items: center;
+            cursor: pointer;
+        }
+
+        .checkbox-group input {
+            display: none;
+        }
+
+        .custom-checkbox {
+            width: 18px;
+            height: 18px;
+            border: 2px solid var(--color-accent-blue);
+            border-radius: 4px;
+            margin-right: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+        }
+
+        .checkbox-group input:checked + .custom-checkbox {
+            background: var(--color-accent-blue);
+        }
+
+        .custom-checkbox::after {
+            content: '✓';
+            color: #fff;
+            font-size: 12px;
+            display: none;
+        }
+
+        .checkbox-group input:checked + .custom-checkbox::after {
+            display: block;
+        }
+
+        .forgot-link {
+            color: var(--color-accent-blue);
+            text-decoration: none;
+            font-weight: 500;
+            transition: color 0.2s;
+        }
+
+        .forgot-link:hover {
+            color: var(--color-primary);
+        }
+
+        .btn-login {
+            width: 100%;
+            padding: 14px;
+            background: var(--color-primary);
+            color: #fff;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            transform: translateZ(15px);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn-login::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+            transition: 0.5s;
+        }
+
+        .btn-login:hover {
+            background: #34495e;
+            transform: translateY(-2px) translateZ(15px);
+            box-shadow: 0 5px 15px rgba(44, 62, 80, 0.2);
+        }
+
+        .btn-login:hover::before {
+            left: 100%;
+        }
+
+        .btn-login:active {
+            transform: translateY(0) translateZ(15px);
+        }
+
+        .btn-loader {
+            display: none;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255,255,255,0.3);
+            border-radius: 50%;
+            border-top-color: #fff;
+            animation: spin 1s linear infinite;
+            margin: 0 auto;
+        }
+
+        @keyframes spin { 100% { transform: rotate(360deg); } }
+
+        /* ==========================================================================
+           5. TOAST NOTIFICATIONS
+           ========================================================================== */
+        .toast-container {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 100;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .toast {
+            min-width: 300px;
+            background: #fff;
+            padding: 15px 20px;
+            border-radius: 8px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+            border-left: 5px solid;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            animation: slideIn 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+            opacity: 0;
+            transform: translateX(100%);
+            animation-fill-mode: forwards;
+        }
+
+        .toast.success { border-color: var(--color-accent-green); }
+        .toast.error { border-color: var(--color-accent-red); }
+        .toast.info { border-color: var(--color-accent-blue); }
+
+        .toast-content {
+            font-size: 14px;
+            color: var(--color-text-main);
+            font-weight: 500;
+        }
+
+        .toast-close {
+            margin-left: 15px;
+            cursor: pointer;
+            color: #999;
+            font-size: 18px;
+        }
+
+        @keyframes slideIn {
+            to { opacity: 1; transform: translateX(0); }
+        }
+        @keyframes fadeOut {
+            to { opacity: 0; transform: translateX(100%); }
+        }
+
+        /* ==========================================================================
+           6. RESPONSIVE DESIGN
+           ========================================================================== */
+        @media (max-width: 900px) {
+            .layer-city { transform: scale(0.8) translateZ(-200px); }
+            .layer-truck { padding-right: 5%; transform: scale(0.8); }
+            .garbage-truck { width: 250px; }
+        }
+
+        @media (max-width: 768px) {
+            .scene-container { flex-direction: column; overflow-y: auto; }
+            .parallax-stage { position: relative; height: 60vh; width: 100%; transform: none !important; }
+            .layer { position: absolute; height: 100%; }
+            .login-wrapper { margin-top: 0; max-width: 100%; padding: 20px; z-index: 20; }
+            .login-card { box-shadow: none; background: rgba(255,255,255,0.95); }
+            /* Hide heavy animations on mobile to save battery */
+            .wheel { animation: none; }
+            .garbage-truck { animation: none; }
+        }
+
+        /* ==========================================================================
+           7. DECORATIVE PARTICLES
+           ========================================================================== */
+        .particles {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 2;
+        }
+        .particle {
+            position: absolute;
+            background: rgba(52, 152, 219, 0.3);
+            border-radius: 50%;
+        }
+        .signup-link {
+    margin-top: 20px;
+    text-align: center;
+    font-size: 14px;
+    color: var(--color-text-muted);
+    transform: translateZ(8px);
+}
+
+.signup-link a {
+    color: var(--color-accent-blue);
+    font-weight: 600;
+    text-decoration: none;
+    margin-left: 5px;
+}
+
+.signup-link a:hover {
+    text-decoration: underline;
+}
+
+    </style>
+    <!-- Use FontAwesome for Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+
+    <!-- 3D SCENE CONTAINER -->
+    <div class="scene-container" id="sceneContainer">
+        
+        <!-- PARALLAX STAGE -->
+        <div class="parallax-stage" id="parallaxStage">
+            
+            <!-- LAYER 1: Sky & Atmosphere -->
+            <div class="layer layer-sky" data-depth="0.02">
+                <div class="cloud c1"></div>
+                <div class="cloud c2"></div>
+                <div class="particles" id="particles"></div>
+            </div>
+
+            <!-- LAYER 2: City Skyline -->
+            <div class="layer layer-city" data-depth="0.05">
+                <div class="building b1">
+                    <div class="win-grid">
+                        <div class="window lit"></div><div class="window"></div><div class="window lit"></div><div class="window"></div>
+                        <div class="window"></div><div class="window"></div><div class="window lit"></div><div class="window"></div>
+                    </div>
+                </div>
+                <div class="building b2"></div>
+                <div class="building b3">
+                    <div class="win-grid">
+                        <div class="window lit"></div><div class="window"></div><div class="window"></div><div class="window"></div>
+                        <div class="window"></div><div class="window lit"></div><div class="window"></div><div class="window"></div>
+                        <div class="window lit"></div><div class="window"></div><div class="window lit"></div><div class="window"></div>
+                    </div>
+                </div>
+                <div class="building b4"></div>
+                <div class="building b5">
+                    <div class="win-grid">
+                         <div class="window"></div><div class="window lit"></div><div class="window"></div>
+                         <div class="window lit"></div><div class="window"></div><div class="window"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- LAYER 3: Municipal Truck -->
+            <div class="layer layer-truck" data-depth="0.1">
+                <div class="garbage-truck" id="municipalTruck">
+                    <div class="truck-body">
+                        <div class="truck-stripe"></div>
+                        <div class="municipal-text">SANITATION DEPT</div>
+                    </div>
+                    <div class="truck-cabin">
+                        <div class="truck-window"></div>
+                    </div>
+                    <div class="wheel w1"></div>
+                    <div class="wheel w2"></div>
+                    <div class="wheel w3"></div>
+                </div>
+            </div>
+            <div class="layer layer-workers" data-depth="0.2">
+                <div class="worker worker-1" onclick="interactWorker(this)">
+                    <div class="worker-helmet"></div>
+                    <div class="worker-head"></div>
+                    <div class="worker-body">
+                        <div class="worker-vest"></div>
+                    </div>
+                    <div class="worker-arm">
+                        <div class="broom-handle"></div>
+                        <div class="broom-bristles"></div>
+                    </div>
+                </div>
+
+                <div class="worker worker-2" onclick="interactWorker(this)">
+                    <div class="worker-helmet"></div>
+                    <div class="worker-head"></div>
+                    <div class="worker-body">
+                        <div class="worker-vest"></div>
+                    </div>
+                    <div class="worker-arm">
+                        <div class="broom-handle"></div>
+                        <div class="broom-bristles"></div>
+                    </div>
+                </div>
+            </div>
+            <div class="layer layer-ground" data-depth="0.3">
+                <div class="road-line"></div>
+            </div>
+
+        </div> 
+        <div class="login-wrapper">
+            <div class="login-card" id="loginCard">
+                <div class="login-header">
+                    <div class="logo-circle">
+                        <i class="fa-solid fa-truck-pickup"></i>
+                    </div>
+                    <h2>Municipal Portal</h2>
+                    <p>Sanitation Worker Access System</p>
+                </div>
+                <form id="loginForm">
+                    <div class="form-group">
+                        <label for="employeeId">Employee ID</label>
+                        <div class="input-wrapper">
+                            <i class="fa-solid fa-id-badge"></i>
+                            <input type="text" id="employeeId" class="form-control" placeholder="Enter ID (e.g., SAN-1234)" autocomplete="username">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="password">Password</label>
+                        <div class="input-wrapper">
+                            <i class="fa-solid fa-lock"></i>
+                            <input type="password" id="password" class="form-control" placeholder="••••••••" autocomplete="current-password">
+                        </div>
+                    </div>
+                    <div class="form-options">
+                        <label class="checkbox-group">
+                            <input type="checkbox" id="rememberMe">
+                            <span class="custom-checkbox"></span>
+                            Remember me
+                        </label>
+                        <a href="#" class="forgot-link" onclick="handleForgot(event)">Forgot Password?</a>
+                    </div>
+                    <button type="button" class="btn-login" onclick="goToDashboard()">
+    <span class="btn-text">Secure Login</span>
+    <div class="btn-loader"></div>
+</button>
+                </form>
+                <div class="signup-link">
+    <span>Don’t have an account?</span>
+    <a href="/signup" onclick="handleCreateAccount()">Create Account</a>
+</div>
+            </div>
+        </div>
+    </div>
+    <div class="toast-container" id="toastContainer"></div>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            initParallax();
+            initParticles();
+            initFormHandler();
+            showToast('Welcome to Sanitation Dept. Portal', 'info');
+        });
+        function initParallax() {
+            const container = document.getElementById('sceneContainer');
+            const stage = document.getElementById('parallaxStage');
+            const layers = document.querySelectorAll('.layer');
+            const loginCard = document.getElementById('loginCard');
+            const municipalTruck = document.getElementById('municipalTruck');
+
+            let mouseX = 0;
+            let mouseY = 0;
+            let targetX = 0;
+            let targetY = 0;
+            
+            // Smoothing factor for movement
+            const smoothing = 0.1; 
+
+            container.addEventListener('mousemove', (e) => {
+                const rect = container.getBoundingClientRect();
+                // Normalize mouse position (-1 to 1)
+                mouseX = ((e.clientX - rect.left) / rect.width) * 2 - 1;
+                mouseY = ((e.clientY - rect.top) / rect.height) * 2 - 1;
+            });
+
+            // Reset on mouse leave
+            container.addEventListener('mouseleave', () => {
+                mouseX = 0;
+                mouseY = 0;
+            });
+
+            function animateParallax() {
+                // Linear interpolation for smooth movement
+                targetX += (mouseX - targetX) * smoothing;
+                targetY += (mouseY - targetY) * smoothing;
+
+                // Apply rotation to the whole stage (subtle tilt)
+                // We rotate opposite to mouse to simulate camera movement
+                const rotateY = targetX * -2; // deg
+                const rotateX = targetY * 2;  // deg
+
+                stage.style.transform = `rotateY(${rotateY}deg) rotateX(${rotateX}deg)`;
+
+                // Apply individual layer translation based on depth
+                stage.style.transform = `rotateY(${rotateY}deg) rotateX(${rotateX}deg)`;
+
+
+                // Specific Floating elements (Login Card)
+                loginCard.style.transform = `rotateY(${rotateY * 0.5}deg) rotateX(${rotateX * -0.5}deg)`;
+
+                // Truck subtle movement
+                municipalTruck.style.transform = `translateX(${-targetX * 10}px) translateY(${-targetY * 10}px)`;
+
+                requestAnimationFrame(animateParallax);
+            }
+
+            animateParallax();
+        }
+
+        
+        function initParticles() {
+            const container = document.getElementById('particles');
+            const particleCount = 20;
+
+            for(let i=0; i<particleCount; i++) {
+                createParticle(container);
+            }
+        }
+
+        function createParticle(container) {
+            const p = document.createElement('div');
+            p.classList.add('particle');
+            
+            // Random properties
+            const size = Math.random() * 4 + 2 + 'px';
+            const left = Math.random() * 100 + '%';
+            const top = Math.random() * 100 + '%';
+            const duration = Math.random() * 10 + 10 + 's';
+            const delay = Math.random() * 5 + 's';
+
+            p.style.width = size;
+            p.style.height = size;
+            p.style.left = left;
+            p.style.top = top;
+            p.style.opacity = Math.random() * 0.5;
+            
+            // Animation
+            p.style.transition = `top ${duration} linear, opacity ${duration} ease`;
+            
+            container.appendChild(p);
+
+            // Animate
+            setTimeout(() => {
+                moveParticle(p);
+            }, 100);
+        }
+
+        function moveParticle(p) {
+            // Reset to bottom or random
+            p.style.top = '110%';
+            p.style.opacity = '0';
+            
+            setTimeout(() => {
+                p.style.top = Math.random() * 50 + '%'; // Float to top half
+                p.style.opacity = Math.random() * 0.6;
+            }, 100);
+
+            // Loop
+            const duration = parseFloat(p.style.transitionDuration) * 1000;
+            setTimeout(() => {
+                moveParticle(p);
+            }, duration + Math.random() * 2000);
+        }
+
+        function interactWorker(element) {
+            // Trigger a little jump animation on click
+            element.style.transition = 'transform 0.1s';
+            element.style.transform = 'scale(1.2) translateY(-20px)';
+            
+            // Play sound effect logic could go here
+            
+            showToast('Worker says: "Keep the city clean!"', 'info');
+
+            setTimeout(() => {
+                element.style.transform = '';
+            }, 200);
+        }
+
+        function handleForgot(e) {
+            e.preventDefault();
+            showToast('Please contact your municipal supervisor.', 'info');
+        }
+
+        function initFormHandler() {
+            const form = document.getElementById('loginForm');
+            const idInput = document.getElementById('employeeId');
+            const passInput = document.getElementById('password');
+            const btn = document.getElementById('loginBtn');
+            const btnText = btn.querySelector('.btn-text');
+            const btnLoader = btn.querySelector('.btn-loader');
+
+            form.addEventListener('submit', (e) => {
+                e.preventDefault();
+
+                const id = idInput.value.trim();
+                const pass = passInput.value.trim();
+
+                // Validation
+                if (!id) {
+                    showToast('Please enter your Employee ID', 'error');
+                    idInput.focus();
+                    shakeForm();
+                    return;
+                }
+
+                if (!pass) {
+                    showToast('Please enter your password', 'error');
+                    passInput.focus();
+                    shakeForm();
+                    return;
+                }
+
+                if (id.length < 5) {
+                    showToast('Invalid Employee ID format', 'error');
+                    shakeForm();
+                    return;
+                }
+
+                // Simulate API Call
+                startLoading();
+
+                setTimeout(() => {
+                    stopLoading();
+                    // Mock success
+                    if (id === 'SAN-1234' && pass === 'password') {
+                        showToast('Login Successful! Redirecting...', 'success');
+                        // Redirect logic here
+                    } else {
+                        // Generic auth error for demo
+                        if(Math.random() > 0.5) {
+                            showToast('Login Successful! Redirecting...', 'success');
+                        } else {
+                            showToast('Invalid credentials. Try SAN-1234', 'error');
+                            shakeForm();
+                        }
+                    }
+                }, 2000);
+            });
+        }
+        function startLoading() {
+            const btn = document.getElementById('loginBtn');
+            const btnText = btn.querySelector('.btn-text');
+            const btnLoader = btn.querySelector('.btn-loader');
+
+            btn.disabled = true;
+            btn.style.opacity = '0.8';
+            btnText.style.display = 'none';
+            btnLoader.style.display = 'block';
+        }
+        function stopLoading() {
+            const btn = document.getElementById('loginBtn');
+            const btnText = btn.querySelector('.btn-text');
+            const btnLoader = btn.querySelector('.btn-loader');
+            btn.disabled = false;
+            btn.style.opacity = '1';
+            btnText.style.display = 'block';
+            btnLoader.style.display = 'none';
+        }
+        function shakeForm() {
+            const card = document.getElementById('loginCard');
+            card.style.animation = 'shake 0.5s cubic-bezier(.36,.07,.19,.97) both';
+            setTimeout(() => {
+                card.style.animation = '';
+            }, 500);
+        }
+        function showToast(message, type = 'info') {
+            const container = document.getElementById('toastContainer');
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`;
+            let icon = '';
+            if (type === 'success') icon = '<i class="fa-solid fa-check-circle" style="color:var(--color-accent-green)"></i>';
+            else if (type === 'error') icon = '<i class="fa-solid fa-circle-exclamation" style="color:var(--color-accent-red)"></i>';
+            else icon = '<i class="fa-solid fa-circle-info" style="color:var(--color-accent-blue)"></i>';
+            toast.innerHTML = `
+                <div style="display:flex; align-items:center;">
+                    ${icon}
+                    <span class="toast-content" style="margin-left:10px;">${message}</span>
+                </div>
+                <div class="toast-close" onclick="this.parentElement.remove()">×</div>
+            `;
+            container.appendChild(toast);
+            setTimeout(() => {
+                toast.style.animation = 'fadeOut 0.3s forwards';
+                toast.addEventListener('animationend', () => {
+                    toast.remove();
+                });
+            }, 3000);
+        }
+        const styleSheet = document.createElement("style");
+        styleSheet.innerText = `
+            @keyframes shake {
+                10%, 90% { transform: translate3d(-1px, 0, 0); }
+                20%, 80% { transform: translate3d(2px, 0, 0); }
+                30%, 50%, 70% { transform: translate3d(-4px, 0, 0); }
+                40%, 60% { transform: translate3d(4px, 0, 0); }
+            }
+        `;
+        document.head.appendChild(styleSheet);
+        function handleCreateAccount() {
+    showToast('Account creation requires admin approval.', 'info');
+}
+    </script>
+    <script>
+function goToDashboard() {
+    window.location.href = "/dashboard";
+}
+</script>
+</body>
+</html>

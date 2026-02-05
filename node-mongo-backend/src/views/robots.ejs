@@ -1,0 +1,1712 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Project AEGIS | Robotic Sanitation Command Center</title>
+    
+    <!-- External Assets: Fonts, Icons, GSAP, Chart.js -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Phosphor Icons -->
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+
+    <style>
+        /* =========================================
+           1. CORE VARIABLES & ROBOTIC THEME
+           ========================================= */
+        :root {
+            /* Palette: Clinical White & Technical Blue */
+            --bg-body: #f4f6f8;
+            --bg-panel: #ffffff;
+            --bg-sidebar: #ffffff;
+            
+            --primary-accent: #0056b3; /* Technical Blue */
+            --primary-light: #e6f0fa;
+            --secondary-accent: #64748b; /* Slate Gray */
+            
+            --status-active: #10b981; /* Emerald */
+            --status-idle: #f59e0b;   /* Amber */
+            --status-error: #ef4444;  /* Red */
+            --status-maint: #3b82f6;  /* Blue */
+
+            --text-main: #0f172a;
+            --text-muted: #64748b;
+            --border-color: #e2e8f0;
+            
+            /* Typography */
+            --font-ui: 'Inter', sans-serif;
+            --font-data: 'JetBrains Mono', monospace;
+
+            /* Shadows & Effects */
+            --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+            --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+            
+            --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            scrollbar-width: thin;
+            scrollbar-color: var(--primary-accent) var(--bg-body);
+        }
+
+        body {
+            background-color: var(--bg-body);
+            color: var(--text-main);
+            font-family: var(--font-ui);
+            height: 100vh;
+            overflow: hidden;
+            display: flex;
+        }
+
+        /* =========================================
+           2. LOADING SEQUENCE (BOOT UP)
+           ========================================= */
+        #boot-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: #fff;
+            z-index: 9999;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .boot-logo {
+            font-family: var(--font-data);
+            font-size: 2rem;
+            font-weight: 700;
+            letter-spacing: -0.05em;
+            margin-bottom: 2rem;
+            opacity: 0;
+        }
+
+        .loader-bar {
+            width: 300px;
+            height: 2px;
+            background: #eee;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .loader-progress {
+            position: absolute;
+            top: 0;
+            left: 0;
+            height: 100%;
+            width: 0%;
+            background: var(--primary-accent);
+        }
+
+        .boot-text {
+            margin-top: 1rem;
+            font-family: var(--font-data);
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            opacity: 0;
+        }
+
+        /* =========================================
+           3. LAYOUT ARCHITECTURE
+           ========================================= */
+        /* Sidebar */
+        .sidebar {
+            width: 280px;
+            background: var(--bg-sidebar);
+            border-right: 1px solid var(--border-color);
+            display: flex;
+            flex-direction: column;
+            padding: 1.5rem;
+            z-index: 10;
+        }
+
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 3rem;
+        }
+
+        .brand-icon {
+            width: 40px;
+            height: 40px;
+            background: var(--primary-accent);
+            color: white;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+        }
+
+        .brand-text h2 {
+            font-size: 1.1rem;
+            font-weight: 700;
+            letter-spacing: -0.02em;
+        }
+
+        .brand-text span {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .nav-menu {
+            list-style: none;
+            flex: 1;
+        }
+
+        .nav-item {
+            margin-bottom: 0.5rem;
+        }
+
+        .nav-link {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            padding: 0.8rem 1rem;
+            text-decoration: none;
+            color: var(--text-muted);
+            border-radius: 8px;
+            transition: var(--transition-smooth);
+            font-weight: 500;
+            cursor: pointer;
+            border: 1px solid transparent;
+        }
+
+        .nav-link:hover {
+            background: var(--bg-body);
+            color: var(--primary-accent);
+        }
+
+        .nav-link.active {
+            background: var(--primary-light);
+            color: var(--primary-accent);
+            border-color: rgba(0, 86, 179, 0.1);
+        }
+
+        .nav-link i {
+            font-size: 1.25rem;
+        }
+
+        .system-status {
+            padding-top: 1rem;
+            border-top: 1px solid var(--border-color);
+        }
+
+        .status-row {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.75rem;
+            margin-bottom: 0.5rem;
+            font-family: var(--font-data);
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--status-active);
+            display: inline-block;
+            margin-right: 6px;
+            animation: pulse 2s infinite;
+        }
+
+        /* Main Content */
+        .main-wrapper {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            position: relative;
+        }
+
+        /* Header */
+        header {
+            height: 70px;
+            background: var(--bg-panel);
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 2rem;
+        }
+
+        .header-title h1 {
+            font-size: 1.25rem;
+            font-weight: 600;
+        }
+
+        .header-meta {
+            display: flex;
+            align-items: center;
+            gap: 2rem;
+        }
+
+        .meta-item {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+        }
+
+        .meta-label {
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            color: var(--text-muted);
+            letter-spacing: 0.05em;
+        }
+
+        .meta-value {
+            font-family: var(--font-data);
+            font-weight: 600;
+            color: var(--text-main);
+        }
+
+        .user-profile {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            padding-left: 2rem;
+            border-left: 1px solid var(--border-color);
+        }
+
+        .avatar {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 2px solid var(--border-color);
+        }
+
+        /* Content Area */
+        #content-area {
+            flex: 1;
+            padding: 2rem;
+            overflow-y: auto;
+            position: relative;
+        }
+
+        /* Grid Background Pattern */
+        .grid-bg {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: linear-gradient(var(--border-color) 1px, transparent 1px),
+            linear-gradient(90deg, var(--border-color) 1px, transparent 1px);
+            background-size: 40px 40px;
+            opacity: 0.3;
+            z-index: -1;
+            pointer-events: none;
+        }
+
+        /* =========================================
+           4. DASHBOARD COMPONENTS
+           ========================================= */
+        
+        /* Stats Cards */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .stat-card {
+            background: var(--bg-panel);
+            border: 1px solid var(--border-color);
+            padding: 1.5rem;
+            border-radius: 12px;
+            position: relative;
+            overflow: hidden;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .stat-card::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 4px;
+            background: var(--primary-accent);
+        }
+
+        .stat-icon {
+            width: 40px;
+            height: 40px;
+            background: var(--primary-light);
+            color: var(--primary-accent);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            margin-bottom: 1rem;
+        }
+
+        .stat-value {
+            font-size: 2rem;
+            font-weight: 700;
+            font-family: var(--font-data);
+            line-height: 1;
+            margin-bottom: 0.25rem;
+        }
+
+        .stat-label {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+        }
+
+        .stat-trend {
+            font-size: 0.75rem;
+            margin-top: 0.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.25rem;
+        }
+
+        .trend-up { color: var(--status-active); }
+        .trend-down { color: var(--status-error); }
+
+        /* Robot Grid (Fleet) */
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .filter-group {
+            display: flex;
+            gap: 0.5rem;
+            background: #fff;
+            padding: 0.25rem;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+        }
+
+        .filter-btn {
+            background: transparent;
+            border: none;
+            padding: 0.5rem 1rem;
+            font-size: 0.85rem;
+            font-weight: 500;
+            color: var(--text-muted);
+            cursor: pointer;
+            border-radius: 6px;
+            transition: var(--transition-smooth);
+        }
+
+        .filter-btn.active {
+            background: var(--text-main);
+            color: #fff;
+        }
+
+        .robot-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .robot-card {
+            background: var(--bg-panel);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            overflow: hidden;
+            cursor: pointer;
+            transition: var(--transition-smooth);
+            position: relative;
+        }
+
+        .robot-card:hover {
+            transform: translateY(-5px);
+            box-shadow: var(--shadow-md);
+            border-color: var(--primary-accent);
+        }
+
+        .card-image {
+            height: 160px;
+            width: 100%;
+            background-color: #eee;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .card-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: transform 0.5s ease;
+        }
+
+        .robot-card:hover .card-image img {
+            transform: scale(1.05);
+        }
+
+        .status-badge {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.7rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            backdrop-filter: blur(4px);
+        }
+
+        .status-active { background: rgba(16, 185, 129, 0.9); color: white; }
+        .status-idle { background: rgba(245, 158, 11, 0.9); color: white; }
+        .status-maint { background: rgba(59, 130, 246, 0.9); color: white; }
+
+        .card-body {
+            padding: 1.25rem;
+        }
+
+        .card-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-bottom: 0.25rem;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .card-subtitle {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            font-family: var(--font-data);
+            margin-bottom: 1rem;
+        }
+
+        .card-metrics {
+            display: flex;
+            justify-content: space-between;
+            padding-top: 1rem;
+            border-top: 1px solid var(--border-color);
+        }
+
+        .metric-mini {
+            text-align: center;
+        }
+
+        .metric-mini span {
+            display: block;
+            font-size: 0.7rem;
+            color: var(--text-muted);
+            margin-bottom: 2px;
+        }
+
+        .metric-mini strong {
+            font-family: var(--font-data);
+            font-size: 0.9rem;
+        }
+
+        /* Camera Section */
+        .camera-container {
+            display: grid;
+            grid-template-columns: 3fr 1fr;
+            gap: 1.5rem;
+            height: calc(100vh - 200px);
+        }
+
+        .viewport {
+            background: #000;
+            border-radius: 12px;
+            position: relative;
+            overflow: hidden;
+            border: 2px solid var(--border-color);
+        }
+
+        .camera-feed {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            opacity: 0.8;
+            transition: transform 0.1s linear; /* Smooth pan */
+        }
+
+        .hud-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            padding: 1.5rem;
+            background: 
+                linear-gradient(rgba(0, 255, 0, 0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0, 255, 0, 0.03) 1px, transparent 1px);
+            background-size: 50px 50px;
+            box-shadow: inset 0 0 100px rgba(0,0,0,0.5);
+        }
+
+        .hud-corner {
+            position: absolute;
+            width: 40px;
+            height: 40px;
+            border-color: rgba(255, 255, 255, 0.5);
+            border-style: solid;
+        }
+
+        .tl { top: 20px; left: 20px; border-width: 2px 0 0 2px; }
+        .tr { top: 20px; right: 20px; border-width: 2px 2px 0 0; }
+        .bl { bottom: 20px; left: 20px; border-width: 0 0 2px 2px; }
+        .br { bottom: 20px; right: 20px; border-width: 0 2px 2px 0; }
+
+        .hud-data {
+            position: absolute;
+            top: 20px;
+            right: 80px;
+            color: #0f0;
+            font-family: var(--font-data);
+            font-size: 0.8rem;
+            text-shadow: 0 0 5px #0f0;
+            text-align: right;
+        }
+
+        .controls-panel {
+            background: var(--bg-panel);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 1.5rem;
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+
+        .control-group label {
+            display: block;
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+            color: var(--text-muted);
+        }
+
+        .range-slider {
+            width: 100%;
+            height: 4px;
+            background: var(--border-color);
+            border-radius: 2px;
+            appearance: none;
+            outline: none;
+        }
+
+        .range-slider::-webkit-slider-thumb {
+            appearance: none;
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            background: var(--primary-accent);
+            cursor: pointer;
+            box-shadow: 0 0 0 4px var(--primary-light);
+        }
+
+        .camera-select-list {
+            flex: 1;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .cam-item {
+            padding: 0.75rem;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            cursor: pointer;
+            transition: var(--transition-smooth);
+        }
+
+        .cam-item:hover, .cam-item.active {
+            background: var(--primary-light);
+            border-color: var(--primary-accent);
+        }
+
+        .cam-indicator {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--status-error);
+        }
+        .cam-item.active .cam-indicator { background: var(--status-active); }
+
+        /* Personnel Table */
+        .data-table-container {
+            background: var(--bg-panel);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: var(--shadow-sm);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        thead {
+            background: var(--bg-body);
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        th {
+            text-align: left;
+            padding: 1rem 1.5rem;
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            color: var(--text-muted);
+            font-weight: 600;
+        }
+
+        td {
+            padding: 1rem 1.5rem;
+            border-bottom: 1px solid var(--border-color);
+            font-size: 0.9rem;
+        }
+
+        tr:last-child td { border-bottom: none; }
+        tr:hover td { background: #fafafa; }
+
+        .operator-cell {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .role-badge {
+            display: inline-block;
+            padding: 0.25rem 0.5rem;
+            background: var(--bg-body);
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+
+        /* =========================================
+           5. MODAL & TOASTS
+           ========================================= */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(15, 23, 42, 0.4);
+            backdrop-filter: blur(4px);
+            z-index: 100;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .modal-overlay.open {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .robot-detail-modal {
+            background: #fff;
+            width: 90%;
+            max-width: 1000px;
+            height: 85vh;
+            border-radius: 16px;
+            box-shadow: var(--shadow-lg);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            transform: translateY(20px);
+            transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+
+        .modal-overlay.open .robot-detail-modal {
+            transform: translateY(0);
+        }
+
+        .modal-header {
+            padding: 1.5rem 2rem;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: #fafafa;
+        }
+
+        .modal-title h2 {
+            font-size: 1.5rem;
+            font-weight: 700;
+        }
+
+        .modal-subtitle {
+            font-family: var(--font-data);
+            color: var(--text-muted);
+            font-size: 0.9rem;
+        }
+
+        .close-btn {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: var(--text-muted);
+            transition: color 0.2s;
+        }
+        .close-btn:hover { color: var(--status-error); }
+
+        .modal-body {
+            flex: 1;
+            display: flex;
+            overflow: hidden;
+        }
+
+        .detail-sidebar {
+            width: 300px;
+            background: var(--bg-body);
+            border-right: 1px solid var(--border-color);
+            padding: 1.5rem;
+            overflow-y: auto;
+        }
+
+        .detail-main {
+            flex: 1;
+            padding: 2rem;
+            overflow-y: auto;
+        }
+
+        .detail-section {
+            margin-bottom: 2rem;
+        }
+
+        .detail-section h3 {
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--text-muted);
+            margin-bottom: 1rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .spec-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1.5rem;
+        }
+
+        .spec-item label {
+            display: block;
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            margin-bottom: 0.25rem;
+        }
+
+        .spec-item div {
+            font-family: var(--font-data);
+            font-weight: 600;
+        }
+
+        /* Terminal / Logs */
+        .terminal-window {
+            background: #1e1e1e;
+            color: #0f0;
+            font-family: var(--font-data);
+            padding: 1rem;
+            border-radius: 8px;
+            height: 200px;
+            overflow-y: auto;
+            font-size: 0.8rem;
+            border: 1px solid #333;
+        }
+
+        .log-entry { margin-bottom: 4px; }
+        .log-time { color: #888; margin-right: 8px; }
+        .log-warn { color: #f59e0b; }
+        .log-err { color: #ef4444; }
+
+        /* Tabs in Modal */
+        .tabs {
+            display: flex;
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .tab-btn {
+            background: none;
+            border: none;
+            padding: 0.75rem 0;
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: var(--text-muted);
+            cursor: pointer;
+            position: relative;
+        }
+
+        .tab-btn.active {
+            color: var(--primary-accent);
+        }
+
+        .tab-btn.active::after {
+            content: '';
+            position: absolute;
+            bottom: -1px;
+            left: 0;
+            width: 100%;
+            height: 2px;
+            background: var(--primary-accent);
+        }
+
+        .tab-content { display: none; animation: fadeIn 0.3s; }
+        .tab-content.active { display: block; }
+
+        /* Toast */
+        .toast-container {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            z-index: 200;
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .toast {
+            background: #fff;
+            border-left: 4px solid var(--primary-accent);
+            padding: 1rem 1.5rem;
+            border-radius: 4px;
+            box-shadow: var(--shadow-lg);
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            min-width: 300px;
+            transform: translateX(100%);
+        }
+
+        @keyframes pulse {
+            0% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.4); }
+            70% { box-shadow: 0 0 0 6px rgba(16, 185, 129, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
+        }
+
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* Responsive */
+        @media (max-width: 1024px) {
+            .camera-container { grid-template-columns: 1fr; grid-template-rows: 1fr auto; height: auto; }
+            .viewport { height: 400px; }
+            .stats-grid { grid-template-columns: repeat(2, 1fr); }
+        }
+        @media (max-width: 768px) {
+            .sidebar { display: none; } /* Simplified for demo */
+            .stats-grid { grid-template-columns: 1fr; }
+            .detail-sidebar { display: none; }
+            .modal-body { flex-direction: column; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Boot Sequence -->
+    <div id="boot-screen">
+        <div class="boot-logo">AEGIS // COMMAND</div>
+        <div class="loader-bar">
+            <div class="loader-progress" id="boot-progress"></div>
+        </div>
+        <div class="boot-text" id="boot-text">Initializing System Core...</div>
+    </div>
+
+    <!-- Sidebar -->
+    <aside class="sidebar">
+        <div class="brand">
+            <div class="brand-icon"><i class="ph ph-robot"></i></div>
+            <div class="brand-text">
+                <h2>AEGIS</h2>
+                <span>Sanitation Div.</span>
+            </div>
+        </div>
+
+        <ul class="nav-menu">
+            <li class="nav-item">
+                <a href="#" class="nav-link active" onclick="switchView('dashboard', this)">
+                    <i class="ph ph-squares-four"></i> Overview
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="#" class="nav-link" onclick="switchView('fleet', this)">
+                    <i class="ph ph-list-dashes"></i> Fleet Status
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="#" class="nav-link" onclick="switchView('cameras', this)">
+                    <i class="ph ph-video-camera"></i> Live Command
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="#" class="nav-link" onclick="switchView('personnel', this)">
+                    <i class="ph ph-users"></i> Field Operators
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="#" class="nav-link" onclick="switchView('analytics', this)">
+                    <i class="ph ph-chart-line-up"></i> Analytics
+                </a>
+            </li>
+        </ul>
+
+        <div class="system-status">
+            <div class="status-row">
+                <span>Server Uptime</span>
+                <span id="uptime">99.98%</span>
+            </div>
+            <div class="status-row">
+                <span>Network Latency</span>
+                <span id="latency">12ms</span>
+            </div>
+            <div class="status-row" style="margin-top: 1rem;">
+                <span><span class="status-dot"></span>System Optimal</span>
+            </div>
+        </div>
+    </aside>
+
+    <!-- Main Wrapper -->
+    <div class="main-wrapper">
+        <!-- Header -->
+        <header>
+            <div class="header-title">
+                <h1 id="page-title">Dashboard Overview</h1>
+            </div>
+            <div class="header-meta">
+                <div class="meta-item">
+                    <span class="meta-label">Active Units</span>
+                    <span class="meta-value" style="color: var(--status-active);">12/15</span>
+                </div>
+                <div class="meta-item">
+                    <span class="meta-label">Environment</span>
+                    <span class="meta-value">Solapur, Sector 4</span>
+                </div>
+                <div class="meta-item">
+                    <span class="meta-label">Local Time</span>
+                    <span class="meta-value" id="clock">00:00:00</span>
+                </div>
+                <div class="user-profile">
+                    <div style="text-align: right;">
+                        <div style="font-weight: 600; font-size: 0.9rem;">Cmdr. R. Deshmukh</div>
+                        <div style="font-size: 0.75rem; color: var(--text-muted);">Lead Supervisor</div>
+                    </div>
+                    <img src="https://picsum.photos/seed/commander/100/100" alt="User" class="avatar">
+                </div>
+            </div>
+        </header>
+
+        <!-- Dynamic Content -->
+        <main id="content-area">
+            <div class="grid-bg"></div>
+            
+            <!-- VIEW: DASHBOARD -->
+            <div id="view-dashboard" class="view-section">
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-icon"><i class="ph ph-robot"></i></div>
+                        <div class="stat-value">15</div>
+                        <div class="stat-label">Total Fleet</div>
+                        <div class="stat-trend trend-up"><i class="ph ph-trend-up"></i> +2 this week</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon" style="color: var(--status-active); background: rgba(16, 185, 129, 0.1);"><i class="ph ph-lightning"></i></div>
+                        <div class="stat-value">87%</div>
+                        <div class="stat-label">Avg Battery Health</div>
+                        <div class="stat-trend trend-up"><i class="ph ph-check"></i> Optimal</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon" style="color: var(--status-error); background: rgba(239, 68, 68, 0.1);"><i class="ph ph-warning-octagon"></i></div>
+                        <div class="stat-value">2</div>
+                        <div class="stat-label">Alerts</div>
+                        <div class="stat-trend trend-down"><i class="ph ph-trend-down"></i> -1 from yesterday</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon" style="color: var(--status-maint); background: rgba(59, 130, 246, 0.1);"><i class="ph ph-broom"></i></div>
+                        <div class="stat-value">450km</div>
+                        <div class="stat-label">Area Sanitized</div>
+                        <div class="stat-trend trend-up"><i class="ph ph-trend-up"></i> 12% increase</div>
+                    </div>
+                </div>
+
+                <div class="section-header">
+                    <h2>Recent Activity Log</h2>
+                    <button class="filter-btn">View Full Log</button>
+                </div>
+
+                <div class="data-table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Timestamp</th>
+                                <th>Unit ID</th>
+                                <th>Event Type</th>
+                                <th>Location</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody id="dashboard-log-body">
+                            <!-- Populated by JS -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- VIEW: FLEET LIST -->
+            <div id="view-fleet" class="view-section" style="display: none;">
+                <div class="section-header">
+                    <h2>Robot Fleet Management</h2>
+                    <div class="filter-group">
+                        <button class="filter-btn active" onclick="filterFleet('all', this)">All Units</button>
+                        <button class="filter-btn" onclick="filterFleet('active', this)">Active</button>
+                        <button class="filter-btn" onclick="filterFleet('idle', this)">Idle</button>
+                        <button class="filter-btn" onclick="filterFleet('maintenance', this)">Maintenance</button>
+                    </div>
+                </div>
+                
+                <div class="robot-grid" id="robot-grid-container">
+                    <!-- Robot Cards Injected Here -->
+                </div>
+            </div>
+
+            <!-- VIEW: CAMERAS -->
+            <div id="view-cameras" class="view-section" style="display: none;">
+                <div class="section-header">
+                    <h2>Live Optical Feed</h2>
+                </div>
+                <div class="camera-container">
+                    <div class="viewport">
+                        <img src="https://picsum.photos/seed/cityview/1200/800" class="camera-feed" id="main-cam-feed" alt="Feed">
+                        <div class="hud-overlay">
+                            <div class="hud-corner tl"></div>
+                            <div class="hud-corner tr"></div>
+                            <div class="hud-corner bl"></div>
+                            <div class="hud-corner br"></div>
+                            <div class="hud-data">
+                                CAM-01 LIVE<br>
+                                ISO 800<br>
+                                ZOOM: 1.2x<br>
+                                REC: <span style="animation: pulse 1s infinite;">●</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="controls-panel">
+                        <div class="control-group">
+                            <label>Active Unit Feeds</label>
+                            <div class="camera-select-list" id="camera-list">
+                                <!-- Camera list items -->
+                            </div>
+                        </div>
+                        <div class="control-group">
+                            <label>Horizontal Pan (Y-Axis)</label>
+                            <input type="range" min="-45" max="45" value="0" class="range-slider" id="pan-slider">
+                        </div>
+                        <div class="control-group">
+                            <label>Vertical Tilt (X-Axis)</label>
+                            <input type="range" min="-20" max="20" value="0" class="range-slider" id="tilt-slider">
+                        </div>
+                        <div class="control-group">
+                            <button class="nav-link active" style="justify-content: center;" onclick="resetCamera()">Reset Orientation</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- VIEW: PERSONNEL -->
+            <div id="view-personnel" class="view-section" style="display: none;">
+                <div class="section-header">
+                    <h2>Field Operators & Assignments</h2>
+                    <button class="nav-link active" style="width: auto; display: inline-flex;">+ Onboard Operator</button>
+                </div>
+                <div class="data-table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Operator</th>
+                                <th>ID Badge</th>
+                                <th>Assigned Unit</th>
+                                <th>Zone</th>
+                                <th>Shift Status</th>
+                                <th>Heart Rate (BPM)</th>
+                            </tr>
+                        </thead>
+                        <tbody id="personnel-table-body">
+                            <!-- Personnel Data -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            
+             <!-- VIEW: ANALYTICS (Placeholder for Chart) -->
+             <div id="view-analytics" class="view-section" style="display: none;">
+                <div class="section-header"><h2>Efficiency Metrics</h2></div>
+                <div class="stat-card" style="height: 400px;">
+                    <canvas id="efficiencyChart"></canvas>
+                </div>
+            </div>
+
+        </main>
+    </div>
+
+    <!-- Robot Details Modal -->
+    <div class="modal-overlay" id="robot-modal">
+        <div class="robot-detail-modal">
+            <div class="modal-header">
+                <div class="modal-title">
+                    <h2 id="modal-robot-name">Unit SB-001</h2>
+                    <div class="modal-subtitle" id="modal-robot-id">ID: 884-22-X</div>
+                </div>
+                <button class="close-btn" onclick="closeModal()"><i class="ph ph-x"></i></button>
+            </div>
+            <div class="modal-body">
+                <!-- Left Sidebar: Status & Actions -->
+                <div class="detail-sidebar">
+                    <div style="text-align: center; margin-bottom: 2rem;">
+                        <div id="modal-status-badge" class="status-badge status-active" style="position: relative; display: inline-block; margin-bottom: 1rem;">Active</div>
+                        <div style="font-size: 3rem; font-weight: 700; font-family: var(--font-data);" id="modal-battery">85%</div>
+                        <div style="color: var(--text-muted); font-size: 0.8rem; margin-top: 0.5rem;">Battery Charge</div>
+                    </div>
+
+                    <div class="detail-section">
+                        <h3>Quick Actions</h3>
+                        <button class="nav-link" style="margin-bottom: 0.5rem; justify-content: flex-start;"><i class="ph ph-map-pin"></i> Locate on Map</button>
+                        <button class="nav-link" style="margin-bottom: 0.5rem; justify-content: flex-start;"><i class="ph ph-video-camera"></i> Switch to Cam</button>
+                        <button class="nav-link" style="margin-bottom: 0.5rem; justify-content: flex-start; color: var(--status-error);"><i class="ph ph-power"></i> Emergency Stop</button>
+                        <button class="nav-link" style="margin-bottom: 0.5rem; justify-content: flex-start;"><i class="ph ph-wrench"></i> Schedule Maintenance</button>
+                    </div>
+
+                    <div class="detail-section">
+                        <h3>Hardware Integrity</h3>
+                        <div style="margin-bottom: 0.8rem;">
+                            <div style="display: flex; justify-content: space-between; font-size: 0.8rem; margin-bottom: 0.2rem;">
+                                <span>Motor L</span>
+                                <span>98%</span>
+                            </div>
+                            <div style="height: 4px; background: #eee; border-radius: 2px;">
+                                <div style="width: 98%; height: 100%; background: var(--status-active); border-radius: 2px;"></div>
+                            </div>
+                        </div>
+                        <div style="margin-bottom: 0.8rem;">
+                            <div style="display: flex; justify-content: space-between; font-size: 0.8rem; margin-bottom: 0.2rem;">
+                                <span>Motor R</span>
+                                <span>94%</span>
+                            </div>
+                            <div style="height: 4px; background: #eee; border-radius: 2px;">
+                                <div style="width: 94%; height: 100%; background: var(--status-active); border-radius: 2px;"></div>
+                            </div>
+                        </div>
+                        <div style="margin-bottom: 0.8rem;">
+                            <div style="display: flex; justify-content: space-between; font-size: 0.8rem; margin-bottom: 0.2rem;">
+                                <span>Lidar Sensor</span>
+                                <span>100%</span>
+                            </div>
+                            <div style="height: 4px; background: #eee; border-radius: 2px;">
+                                <div style="width: 100%; height: 100%; background: var(--status-active); border-radius: 2px;"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Right Main: Details -->
+                <div class="detail-main">
+                    <div class="tabs">
+                        <button class="tab-btn active" onclick="switchTab('tab-overview')">Overview</button>
+                        <button class="tab-btn" onclick="switchTab('tab-diagnostics')">Diagnostics</button>
+                        <button class="tab-btn" onclick="switchTab('tab-logs')">System Logs</button>
+                    </div>
+
+                    <div id="tab-overview" class="tab-content active">
+                        <div class="detail-section">
+                            <h3>Specification Matrix</h3>
+                            <div class="spec-grid">
+                                <div class="spec-item">
+                                    <label>Model Type</label>
+                                    <div>Sani-Bot Mk.IV</div>
+                                </div>
+                                <div class="spec-item">
+                                    <label>Manufacture Date</label>
+                                    <div>2023-11-15</div>
+                                </div>
+                                <div class="spec-item">
+                                    <label>Current Location</label>
+                                    <div>Zone A, Sector 4</div>
+                                </div>
+                                <div class="spec-item">
+                                    <label>Last Maintenance</label>
+                                    <div>4 days ago</div>
+                                </div>
+                                <div class="spec-item">
+                                    <label>Operator Assigned</label>
+                                    <div id="modal-operator">Rajesh K.</div>
+                                </div>
+                                <div class="spec-item">
+                                    <label>Firmware Ver.</label>
+                                    <div>v4.2.0-stable</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="detail-section">
+                            <h3>Mission Progress</h3>
+                            <p style="color: var(--text-muted); margin-bottom: 0.5rem;">Current Task: Street Sweeping - Main Market Road</p>
+                            <div style="height: 8px; background: #eee; border-radius: 4px; margin-bottom: 0.5rem;">
+                                <div style="width: 65%; height: 100%; background: var(--primary-accent); border-radius: 4px;"></div>
+                            </div>
+                            <div style="display: flex; justify-content: space-between; font-size: 0.8rem;">
+                                <span>Started: 08:00 AM</span>
+                                <span>Est. Completion: 11:30 AM</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div id="tab-diagnostics" class="tab-content">
+                        <div class="detail-section">
+                            <h3>Real-time Telemetry</h3>
+                            <canvas id="telemetryChart" height="200"></canvas>
+                        </div>
+                        <div class="detail-section">
+                            <h3>Error History (Last 24h)</h3>
+                            <div style="padding: 1rem; background: #fff; border: 1px solid var(--border-color); border-radius: 8px;">
+                                <p style="font-size: 0.9rem; color: var(--text-muted);">No critical errors detected. Minor trajectory adjustment at 09:14 AM due to obstacle.</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div id="tab-logs" class="tab-content">
+                        <div class="terminal-window" id="terminal-logs">
+                            <!-- Logs go here -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Container -->
+    <div class="toast-container" id="toast-area"></div>
+
+    <script>
+        /* =========================================
+           DATA MOCKS & STATE
+           ========================================= */
+        
+        const robots = [
+            { id: 'SB-001', name: 'Alpha-Prime', type: 'Heavy Sweeper', status: 'active', battery: 85, zone: 'Zone A', img: 'https://picsum.photos/seed/robot1/300/200', operator: 'Rajesh K.' },
+            { id: 'SB-002', name: 'Beta-Ray', type: 'Sanitizer Drone', status: 'active', battery: 42, zone: 'Zone B', img: 'https://picsum.photos/seed/robot2/300/200', operator: 'Sarah J.' },
+            { id: 'SB-003', name: 'Gamma-Scan', type: 'Waste Sorter', status: 'idle', battery: 100, zone: 'Zone A', img: 'https://picsum.photos/seed/robot3/300/200', operator: 'Unassigned' },
+            { id: 'SB-004', name: 'Delta-Force', type: 'Heavy Sweeper', status: 'maintenance', battery: 0, zone: 'Dock 4', img: 'https://picsum.photos/seed/robot4/300/200', operator: 'Mike T.' },
+            { id: 'SB-005', name: 'Epsilon-Eye', type: 'Surveillance', status: 'active', battery: 91, zone: 'Zone C', img: 'https://picsum.photos/seed/robot5/300/200', operator: 'Anita D.' },
+            { id: 'SB-006', name: 'Zeta-Clean', type: 'Sanitizer Drone', status: 'active', battery: 67, zone: 'Zone B', img: 'https://picsum.photos/seed/robot6/300/200', operator: 'Rajesh K.' },
+        ];
+
+        const personnel = [
+            { name: 'Rajesh Kumar', id: 'OP-102', unit: 'SB-001, SB-006', zone: 'A, B', shift: 'Active', bpm: 78, img: 'https://picsum.photos/seed/p1/50/50' },
+            { name: 'Sarah Jenkins', id: 'OP-104', unit: 'SB-002', zone: 'B', shift: 'Active', bpm: 82, img: 'https://picsum.photos/seed/p2/50/50' },
+            { name: 'Mike Tsoni', id: 'OP-109', unit: 'SB-004', zone: 'Dock', shift: 'Break', bpm: 65, img: 'https://picsum.photos/seed/p3/50/50' },
+            { name: 'Anita Desai', id: 'OP-112', unit: 'SB-005', zone: 'C', shift: 'Active', bpm: 75, img: 'https://picsum.photos/seed/p4/50/50' },
+        ];
+
+        const logs = [
+            { time: '10:42:05', unit: 'SB-001', event: 'Obstacle Avoided', loc: 'Market St', type: 'info' },
+            { time: '10:40:12', unit: 'SB-002', event: 'Battery Low (<20%)', loc: 'Sector 4', type: 'warn' },
+            { time: '10:38:55', unit: 'SB-005', event: 'Bin Full', loc: 'Zone C Hub', type: 'info' },
+            { time: '10:35:00', unit: 'SYS', event: 'Data Sync Complete', loc: 'Server', type: 'success' },
+        ];
+
+        /* =========================================
+           INITIALIZATION & BOOT SEQUENCE
+           ========================================= */
+        
+        window.addEventListener('load', () => {
+            const tl = gsap.timeline();
+
+            // Boot Animation
+            tl.to('#boot-progress', { width: '100%', duration: 1.5, ease: 'power2.inOut' })
+              .to('#boot-text', { opacity: 1, y: 0, duration: 0.5 }, "-=1")
+              .to('#boot-text', { text: "Loading Telemetry Modules...", duration: 0.5, onComplete: () => { document.getElementById('boot-text').innerText = "Loading Telemetry Modules..."; } })
+              .to('#boot-text', { text: "Connecting to Satellite Uplink...", duration: 0.5, onComplete: () => { document.getElementById('boot-text').innerText = "Connecting to Satellite Uplink..."; } })
+              .to('#boot-screen', { opacity: 0, duration: 0.8, delay: 0.2, onComplete: () => {
+                  document.getElementById('boot-screen').style.display = 'none';
+                  initDashboard();
+              }});
+
+            // Start Clock
+            setInterval(updateClock, 1000);
+            updateClock();
+        });
+
+        function initDashboard() {
+            renderRobotGrid(robots);
+            renderPersonnel();
+            renderLogs();
+            renderCameraList();
+            initCharts();
+            startSimulation();
+            
+            // Entrance Animation for Content
+            gsap.from('.sidebar', { x: -50, opacity: 0, duration: 1, ease: 'power3.out' });
+            gsap.from('header', { y: -20, opacity: 0, duration: 1, delay: 0.3, ease: 'power3.out' });
+            gsap.from('#view-dashboard', { y: 20, opacity: 0, duration: 1, delay: 0.5, ease: 'power3.out' });
+        }
+
+        /* =========================================
+           RENDERING FUNCTIONS
+           ========================================= */
+
+        function renderRobotGrid(data) {
+            const container = document.getElementById('robot-grid-container');
+            container.innerHTML = '';
+
+            data.forEach((bot, index) => {
+                const statusClass = `status-${bot.status}`;
+                const card = document.createElement('div');
+                card.className = 'robot-card';
+                card.style.animationDelay = `${index * 0.1}s`;
+                card.onclick = () => openRobotModal(bot);
+
+                card.innerHTML = `
+                    <div class="card-image">
+                        <span class="status-badge ${statusClass}">${bot.status}</span>
+                        <img src="${bot.img}" alt="${bot.name}">
+                    </div>
+                    <div class="card-body">
+                        <div class="card-title">
+                            ${bot.name}
+                            <i class="ph ph-wifi-high" style="color: var(--status-active);"></i>
+                        </div>
+                        <div class="card-subtitle">${bot.type} // ${bot.id}</div>
+                        <div class="card-metrics">
+                            <div class="metric-mini">
+                                <span>PWR</span>
+                                <strong style="color: ${bot.battery < 20 ? 'var(--status-error)' : 'var(--text-main)'}">${bot.battery}%</strong>
+                            </div>
+                            <div class="metric-mini">
+                                <span>ZONE</span>
+                                <strong>${bot.zone}</strong>
+                            </div>
+                            <div class="metric-mini">
+                                <span>OP</span>
+                                <strong>${bot.operator.split(' ')[0]}</strong>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+
+            // Re-trigger stagger animation
+            gsap.from('.robot-card', { 
+                y: 30, 
+                opacity: 0, 
+                duration: 0.6, 
+                stagger: 0.05, 
+                ease: 'back.out(1.2)' 
+            });
+        }
+
+        function filterFleet(status, btn) {
+            // Update buttons
+            document.querySelectorAll('.filter-group .filter-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+
+            // Filter data
+            let filtered = robots;
+            if (status !== 'all') {
+                filtered = robots.filter(r => r.status === status);
+            }
+            renderRobotGrid(filtered);
+        }
+
+        function renderPersonnel() {
+            const tbody = document.getElementById('personnel-table-body');
+            personnel.forEach(p => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td>
+                        <div class="operator-cell">
+                            <img src="${p.img}" class="avatar">
+                            <div>
+                                <div style="font-weight: 600;">${p.name}</div>
+                                <div style="font-size: 0.75rem; color: var(--text-muted);">${p.id}</div>
+                            </div>
+                        </div>
+                    </td>
+                    <td>${p.id}</td>
+                    <td><span class="role-badge">${p.unit}</span></td>
+                    <td>${p.zone}</td>
+                    <td><span style="color: ${p.shift === 'Active' ? 'var(--status-active)' : 'var(--status-idle)'}">● ${p.shift}</span></td>
+                    <td style="font-family: var(--font-data); font-weight: 600;">${p.bpm} BPM</td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        function renderLogs() {
+            const tbody = document.getElementById('dashboard-log-body');
+            logs.forEach(log => {
+                const tr = document.createElement('tr');
+                let color = 'var(--text-main)';
+                if(log.type === 'warn') color = 'var(--status-idle)';
+                if(log.type === 'success') color = 'var(--status-active)';
+                
+                tr.innerHTML = `
+                    <td style="font-family: var(--font-data);">${log.time}</td>
+                    <td style="font-weight: 600;">${log.unit}</td>
+                    <td style="color: ${color};">${log.event}</td>
+                    <td>${log.loc}</td>
+                    <td><span class="status-badge" style="background: #eee; color: #333;">${log.type.toUpperCase()}</span></td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        function renderCameraList() {
+            const list = document.getElementById('camera-list');
+            const activeRobots = robots.filter(r => r.status === 'active');
+            
+            activeRobots.forEach(r => {
+                const item = document.createElement('div');
+                item.className = 'cam-item';
+                item.innerHTML = `
+                    <div>
+                        <div style="font-weight: 600; font-size: 0.9rem;">${r.name}</div>
+                        <div style="font-size: 0.75rem; color: var(--text-muted);">${r.zone}</div>
+                    </div>
+                    <div class="cam-indicator"></div>
+                `;
+                item.onclick = function() {
+                    document.querySelectorAll('.cam-item').forEach(c => c.classList.remove('active'));
+                    this.classList.add('active');
+                    // Mock feed switch
+                    const feed = document.getElementById('main-cam-feed');
+                    gsap.to(feed, {opacity: 0, duration: 0.2, onComplete: () => {
+                        feed.src = `https://picsum.photos/seed/${r.id}/1200/800`;
+                        gsap.to(feed, {opacity: 0.8, duration: 0.2});
+                        showToast(`Switched to optical feed of ${r.name}`, 'info');
+                    }});
+                };
+                list.appendChild(item);
+            });
+            if(list.firstChild) list.firstChild.classList.add('active');
+        }
+
+
+
+        function openRobotModal(bot) {
+            const modal = document.getElementById('robot-modal');
+            document.getElementById('modal-robot-name').innerText = bot.name;
+            document.getElementById('modal-robot-id').innerText = `ID: ${bot.id} // ${bot.type}`;
+            document.getElementById('modal-battery').innerText = `${bot.battery}%`;
+            document.getElementById('modal-operator').innerText = bot.operator;
+        
+            const badge = document.getElementById('modal-status-badge');
+            badge.className = `status-badge status-${bot.status}`;
+            badge.innerText = bot.status.toUpperCase();
+
+          
+            const term = document.getElementById('terminal-logs');
+            term.innerHTML = '';
+            for(let i=0; i<15; i++) {
+                const time = new Date(Date.now() - i * 60000).toLocaleTimeString('en-US', {hour12: false});
+                const msgs = ['System check OK', 'GPS signal strong', 'Motor temp nominal', 'Lidar scan complete', 'Packet sent'];
+                const msg = msgs[Math.floor(Math.random() * msgs.length)];
+                term.innerHTML += `<div class="log-entry"><span class="log-time">[${time}]</span> ${msg}</div>`;
+            }
+
+            modal.classList.add('open');
+            
+            if(window.telemetryChartInstance) window.telemetryChartInstance.destroy();
+            const ctx = document.getElementById('telemetryChart').getContext('2d');
+            window.telemetryChartInstance = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: ['10:00', '10:05', '10:10', '10:15', '10:20', '10:25'],
+                    datasets: [{
+                        label: 'Motor Temp (°C)',
+                        data: [45, 46, 44, 48, 47, 46],
+                        borderColor: '#0056b3',
+                        backgroundColor: 'rgba(0, 86, 179, 0.1)',
+                        fill: true,
+                        tension: 0.4
+                    }]
+                },
+                options: { responsive: true, maintainAspectRatio: false }
+            });
+        }
+
+        function closeModal() {
+            document.getElementById('robot-modal').classList.remove('open');
+        }
+
+        function switchTab(tabId) {
+            // Hide all tabs
+            document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            
+            document.getElementById(tabId).classList.add('active');
+            event.target.classList.add('active');
+        }
+
+        function switchView(viewName, navElement) {
+            // Update Nav
+            document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
+            navElement.classList.add('active');
+
+            // Update Header
+            const titles = {
+                'dashboard': 'Dashboard Overview',
+                'fleet': 'Fleet Management',
+                'cameras': 'Live Optical Command',
+                'personnel': 'Field Operations',
+                'analytics': 'Performance Analytics'
+            };
+            document.getElementById('page-title').innerText = titles[viewName];
+
+            // Hide/Show Views with Animation
+            const currentView = document.querySelector('.view-section:not([style*="display: none"])');
+            const nextView = document.getElementById(`view-${viewName}`);
+
+            if(currentView !== nextView) {
+                gsap.to(currentView, {
+                    opacity: 0, 
+                    y: -10, 
+                    duration: 0.3, 
+                    onComplete: () => {
+                        currentView.style.display = 'none';
+                        nextView.style.display = 'block';
+                        gsap.fromTo(nextView, {opacity: 0, y: 10}, {opacity: 1, y: 0, duration: 0.4});
+                        
+                        // Re-render chart if analytics
+                        if(viewName === 'analytics' && !window.analyticsChartInit) {
+                           // Mock chart render logic would go here fully
+                           window.analyticsChartInit = true; 
+                        }
+                    }
+                });
+            }
+        }
+
+        /* =========================================
+           CAMERA CONTROLS
+           ========================================= */
+        const panSlider = document.getElementById('pan-slider');
+        const tiltSlider = document.getElementById('tilt-slider');
+        const feed = document.getElementById('main-cam-feed');
+
+        function updateCameraView() {
+            const pan = panSlider.value;
+            const tilt = tiltSlider.value;
+            feed.style.transform = `scale(1.2) rotateX(${-tilt}deg) rotateY(${pan}deg)`;
+        }
+
+        panSlider.addEventListener('input', updateCameraView);
+        tiltSlider.addEventListener('input', updateCameraView);
+
+        function resetCamera() {
+            panSlider.value = 0;
+            tiltSlider.value = 0;
+            gsap.to(feed, {transform: 'scale(1.2) rotateX(0deg) rotateY(0deg)', duration: 0.5});
+        }
+        
+        function updateClock() {
+            const now = new Date();
+            document.getElementById('clock').innerText = now.toLocaleTimeString('en-GB');
+        }
+
+        function showToast(message, type = 'success') {
+            const container = document.getElementById('toast-area');
+            const toast = document.createElement('div');
+            toast.className = 'toast';
+            
+            let color = 'var(--status-active)';
+            if(type === 'error') color = 'var(--status-error)';
+            if(type === 'info') color = 'var(--primary-accent)';
+
+            toast.style.borderLeftColor = color;
+            toast.innerHTML = `
+                <div style="width: 24px; height: 24px; background: ${color}; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white;">
+                    <i class="ph ph-bell"></i>
+                </div>
+                <div style="font-weight: 500; font-size: 0.9rem;">${message}</div>
+            `;
+
+            container.appendChild(toast);
+
+            gsap.to(toast, { x: 0, opacity: 1, duration: 0.4, ease: 'back.out(1.2)' });
+
+            setTimeout(() => {
+                gsap.to(toast, { 
+                    x: 100, 
+                    opacity: 0, 
+                    duration: 0.3, 
+                    onComplete: () => toast.remove() 
+                });
+            }, 3000);
+        }
+
+        function initCharts() {
+            const ctx = document.getElementById('efficiencyChart').getContext('2d');
+            new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+                    datasets: [{
+                        label: 'Area Cleaned (sq meters)',
+                        data: [1200, 1900, 1500, 1700, 2100, 1800, 1300],
+                        backgroundColor: '#0056b3',
+                        borderRadius: 4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: { beginAtZero: true, grid: { color: '#f0f0f0' } },
+                        x: { grid: { display: false } }
+                    }
+                }
+            });
+        }
+        function startSimulation() {
+            setInterval(() => {
+                const uptime = (99.9 + Math.random() * 0.09).toFixed(2);
+                const latency = Math.floor(10 + Math.random() * 15);
+                document.getElementById('uptime').innerText = uptime + '%';
+                document.getElementById('latency').innerText = latency + 'ms';
+            }, 2000);
+
+            setTimeout(() => {
+                showToast("Unit SB-002 reported bin full", "info");
+            }, 10000);
+            
+            setTimeout(() => {
+                showToast("Connection with Satellite strengthened", "success");
+            }, 25000);
+        }
+
+    </script>
+</body>
+</html>

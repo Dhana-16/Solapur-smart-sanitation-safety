@@ -1,0 +1,1073 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SSAS | Solapur Municipal Corporation</title>
+    
+    <!-- External Assets -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Lato:wght@300;400;700&family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&display=swap" rel="stylesheet">
+    
+    <style>
+        /* =========================================
+           1. CORE VARIABLES (Ink & Parchment)
+           ========================================= */
+        :root {
+            /* Palette: Solapur Civic Authority */
+            --color-bg: #ffffff;
+            --color-ink-primary: #0a192f; /* Deep Ink Blue */
+            --color-ink-secondary: #172a45; /* Lighter Ink */
+            --color-ink-accent: #3d6cb9; /* Royal Accent */
+            --color-danger: #c92a2a; /* Muted Red for Urgency */
+            --color-success: #2b8a3e; /* Muted Green */
+            --color-warning: #e67700;
+            
+            --color-subtle: #f8f9fa;
+            --color-border: #e9ecef;
+
+            --font-serif: 'Playfair Display', serif;
+            --font-sans: 'Lato', sans-serif;
+            
+            --sidebar-width: 280px;
+            --transition-ease: cubic-bezier(0.23, 1, 0.32, 1);
+            --shadow-elegant: 0 10px 40px -10px rgba(10, 25, 47, 0.08);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            outline: none;
+        }
+
+        body {
+            background-color: var(--color-bg);
+            color: var(--color-ink-primary);
+            font-family: var(--font-sans);
+            height: 100vh;
+            overflow: hidden;
+            display: flex;
+        }
+
+        /* =========================================
+           2. SIDEBAR NAVIGATION
+           ========================================= */
+        aside {
+            width: var(--sidebar-width);
+            background-color: var(--color-ink-primary);
+            color: #fff;
+            display: flex;
+            flex-direction: column;
+            padding: 2rem 1.5rem;
+            z-index: 100;
+            box-shadow: 5px 0 30px rgba(0,0,0,0.1);
+        }
+
+        .brand {
+            margin-bottom: 3rem;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            padding-bottom: 1.5rem;
+        }
+
+        .brand h2 {
+            font-family: var(--font-serif);
+            font-size: 1.5rem;
+            letter-spacing: 0.05em;
+            margin-bottom: 0.5rem;
+        }
+
+        .brand p {
+            font-size: 0.75rem;
+            color: rgba(255,255,255,0.6);
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+        }
+
+        nav ul {
+            list-style: none;
+            flex: 1;
+        }
+
+        nav li {
+            margin-bottom: 0.5rem;
+        }
+
+        nav button {
+            background: transparent;
+            border: none;
+            color: #8b9bb4;
+            width: 100%;
+            text-align: left;
+            padding: 0.8rem 1rem;
+            font-family: var(--font-sans);
+            font-size: 0.9rem;
+            font-weight: 400;
+            cursor: pointer;
+            border-radius: 2px;
+            transition: all 0.3s var(--transition-ease);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        nav button:hover {
+            background-color: rgba(255,255,255,0.05);
+            color: #fff;
+            padding-left: 1.5rem;
+        }
+
+        nav button.active {
+            background-color: rgba(255,255,255,0.1);
+            color: #fff;
+            font-weight: 700;
+            border-left: 3px solid #fff;
+            padding-left: 1.2rem;
+        }
+
+        .emergency-sidebar {
+            margin-top: auto;
+            border-top: 1px solid rgba(255,255,255,0.1);
+            padding-top: 1.5rem;
+        }
+
+        .btn-emergency {
+            background-color: var(--color-danger) !important;
+            color: white !important;
+            font-weight: 700 !important;
+            justify-content: center;
+            padding: 1rem;
+            animation: pulse-ink 2s infinite;
+        }
+
+        /* =========================================
+           3. MAIN CONTENT LAYOUT
+           ========================================= */
+        main {
+            flex: 1;
+            overflow-y: auto;
+            padding: 3rem 4rem;
+            position: relative;
+        }
+
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+            margin-bottom: 3rem;
+            border-bottom: 1px solid var(--color-border);
+            padding-bottom: 1.5rem;
+        }
+
+        h1 {
+            font-family: var(--font-serif);
+            font-size: 2.5rem;
+            color: var(--color-ink-primary);
+            font-weight: 700;
+        }
+
+        .subtitle {
+            font-style: italic;
+            color: #666;
+            font-family: var(--font-serif);
+        }
+
+        /* Section Transition Container */
+        .section-container {
+            display: none;
+            opacity: 0;
+            transform: translateY(20px);
+        }
+
+        .section-container.active {
+            display: block;
+        }
+
+        /* =========================================
+           4. COMPONENTS: CARDS & INTEL
+           ========================================= */
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: 2rem;
+            margin-bottom: 3rem;
+        }
+
+        .intel-card {
+            background: #fff;
+            border: 1px solid var(--color-border);
+            padding: 2rem;
+            position: relative;
+            box-shadow: var(--shadow-elegant);
+            border-top: 4px solid transparent;
+            transition: all 0.3s;
+        }
+
+        .intel-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 50px -10px rgba(0,0,0,0.1);
+        }
+
+        .intel-card.blue-border { border-top-color: var(--color-ink-primary); }
+        .intel-card.green-border { border-top-color: var(--color-success); }
+        .intel-card.orange-border { border-top-color: var(--color-warning); }
+        .intel-card.red-border { border-top-color: var(--color-danger); }
+
+        .intel-label {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            color: #888;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+        }
+
+        .intel-value {
+            font-family: var(--font-serif);
+            font-size: 2.5rem;
+            color: var(--color-ink-primary);
+        }
+
+        .intel-sub {
+            font-size: 0.8rem;
+            color: #666;
+            margin-top: 0.5rem;
+        }
+
+        /* Tables */
+        .ledger-card {
+            background: #fff;
+            border: 1px solid var(--color-border);
+            box-shadow: var(--shadow-elegant);
+            padding: 2rem;
+        }
+
+        .ledger-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+        }
+
+        .ledger-title {
+            font-family: var(--font-serif);
+            font-size: 1.5rem;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th {
+            text-align: left;
+            padding: 1rem;
+            border-bottom: 2px solid var(--color-ink-primary);
+            color: var(--color-ink-primary);
+            font-family: var(--font-serif);
+            font-size: 0.9rem;
+        }
+
+        td {
+            padding: 1rem;
+            border-bottom: 1px solid var(--color-border);
+            font-size: 0.95rem;
+        }
+
+        tr:hover td {
+            background-color: var(--color-subtle);
+        }
+
+        .status-badge {
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            text-transform: uppercase;
+        }
+
+        .status-active { background: #d3f9d8; color: #2b8a3e; }
+        .status-leave { background: #fff3bf; color: #f08c00; }
+        .status-injured { background: #ffe3e3; color: #c92a2a; }
+
+        /* Buttons & Inputs */
+        .btn-elegant {
+            background: var(--color-ink-primary);
+            color: white;
+            border: none;
+            padding: 0.8rem 2rem;
+            font-family: var(--font-serif);
+            font-size: 0.9rem;
+            letter-spacing: 0.05em;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .btn-elegant:hover {
+            background: var(--color-ink-accent);
+            transform: translateY(-2px);
+        }
+
+        input, select {
+            padding: 0.8rem;
+            border: 1px solid #ccc;
+            background: #fff;
+            font-family: var(--font-sans);
+            width: 100%;
+        }
+
+        /* =========================================
+           5. SPECIFIC MODULES
+           ========================================= */
+        
+        /* Biometry */
+        .biometric-interface {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 300px;
+            background: #f1f3f5;
+            border: 1px solid var(--color-border);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .fingerprint-ring {
+            width: 120px;
+            height: 120px;
+            border: 2px solid var(--color-ink-primary);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+
+        .fingerprint-ring:hover {
+            background: rgba(10, 25, 47, 0.05);
+            transform: scale(1.05);
+        }
+
+        /* Tracking Map */
+        #tracking-canvas {
+            width: 100%;
+            height: 450px;
+            background-color: #f8f9fa;
+            border: 1px solid var(--color-border);
+            background-image: 
+                linear-gradient(rgba(10,25,47,0.05) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(10,25,47,0.05) 1px, transparent 1px);
+            background-size: 30px 30px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .worker-dot {
+            position: absolute;
+            width: 14px;
+            height: 14px;
+            background: var(--color-ink-primary);
+            border: 2px solid #fff;
+            border-radius: 50%;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+            transition: top 1s ease, left 1s ease;
+        }
+
+        .worker-dot::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 30px;
+            height: 30px;
+            transform: translate(-50%, -50%);
+            border: 1px solid var(--color-ink-primary);
+            border-radius: 50%;
+            animation: ripple-ink 2s infinite;
+        }
+
+        /* Signature Pad */
+        #signature-pad {
+            border: 1px dashed #ccc;
+            background: #fff;
+            cursor: crosshair;
+        }
+
+        /* =========================================
+           6. UTILITIES & ANIMATIONS
+           ========================================= */
+        @keyframes pulse-ink {
+            0% { box-shadow: 0 0 0 0 rgba(201, 42, 42, 0.4); }
+            70% { box-shadow: 0 0 0 10px rgba(201, 42, 42, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(201, 42, 42, 0); }
+        }
+
+        @keyframes ripple-ink {
+            0% { transform: translate(-50%, -50%) scale(1); opacity: 0.6; }
+            100% { transform: translate(-50%, -50%) scale(2.5); opacity: 0; }
+        }
+
+        .toast {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            background: var(--color-ink-primary);
+            color: #fff;
+            padding: 1rem 2rem;
+            border-radius: 2px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            transform: translateY(100px);
+            opacity: 0;
+            z-index: 2000;
+            font-family: var(--font-serif);
+        }
+
+        .filters {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .filter-item {
+            flex: 1;
+        }
+
+    </style>
+</head>
+<body>
+
+    <!-- Sidebar -->
+    <aside>
+        <div class="brand">
+            <h2>SSAS</h2>
+            <p>Sanitation Safety & Assistant System</p>
+            <small style="color: rgba(255,255,255,0.4); display: block; margin-top: 5px;">Solapur Municipal Corp.</small>
+        </div>
+        
+        <nav>
+            <ul>
+                <li><button onclick="router('dashboard')" class="active" id="nav-dashboard">Command Center</button></li>
+                <li><button onclick="router('workers')" id="nav-workers">Personnel Directory</button></li>
+                <li><button onclick="router('attendance')" id="nav-attendance">Biometric Attendance</button></li>
+                <li><button onclick="router('health')" id="nav-health">Physiological Monitoring</button></li>
+                <li><button onclick="router('tracking')" id="nav-tracking">Geospatial Tracking</button></li>
+                <li><button onclick="router('salary')" id="nav-salary">Fiscal Compensation</button></li>
+                <li><button onclick="router('updates')" id="nav-updates">Directives & Memos</button></li>
+                <li><button onclick="router('settings')" id="nav-settings">Configuration</button></li>
+                <li><button onclick="router('consent')" id="nav-consent">Legal Consents</button></li>
+            </ul>
+        </nav>
+
+        <div class="emergency-sidebar">
+            <button onclick="router('emergency')" class="btn-emergency">CRISIS PROTOCOL</button>
+        </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main>
+        
+        <!-- Header -->
+        
+
+        <!-- Toast -->
+        <div id="toast" class="toast">Notification</div>
+
+        <!-- 1. DASHBOARD -->
+        <section id="dashboard" class="section-container active">
+            <div class="dashboard-grid">
+                <div class="intel-card blue-border">
+                    <div class="intel-label">Total Personnel</div>
+                    <div class="intel-value">142</div>
+                    <div class="intel-sub">+4 New Inductees</div>
+                </div>
+                <div class="intel-card green-border">
+                    <div class="intel-label">Active Deployment</div>
+                    <div class="intel-value">86</div>
+                    <div class="intel-sub">Operating Efficiency: 94%</div>
+                </div>
+                <div class="intel-card orange-border">
+                    <div class="intel-label">Pending Remuneration</div>
+                    <div class="intel-value">₹45L</div>
+                    <div class="intel-sub">Processing Cycle: 25th</div>
+                </div>
+                <div class="intel-card red-border">
+                    <div class="intel-label">Critical Alerts</div>
+                    <div class="intel-value">2</div>
+                    <div class="intel-sub">Immediate Attention Required</div>
+                </div>
+            </div>
+
+            <div class="ledger-card">
+                <div class="ledger-header">
+                    <h3 class="ledger-title">Recent Operational Log</h3>
+                </div>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Operative</th>
+                            <th>Activity Description</th>
+                            <th>Timestamp</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody id="activity-table-body">
+                        <!-- JS populated -->
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- 2. WORKERS LIST -->
+        <section id="workers" class="section-container">
+            <div class="ledger-card">
+                <div class="ledger-header">
+                    <h3 class="ledger-title">Personnel Directory</h3>
+                    <button class="btn-elegant" onclick="showToast('Registration Form Initiated')">Induct New Operative</button>
+                </div>
+                
+                <div class="filters">
+                    <div class="filter-item">
+                        <select class="filter-select" id="exp-filter" onchange="filterWorkers()">
+                            <option value="all">All Experience Levels</option>
+                            <option value="senior">Senior (5+ Yrs)</option>
+                            <option value="mid">Mid-Level (3-5 Yrs)</option>
+                            <option value="junior">Junior (0-2 Yrs)</option>
+                        </select>
+                    </div>
+                    <div class="filter-item">
+                        <select class="filter-select" id="status-filter" onchange="filterWorkers()">
+                            <option value="all">All Statuses</option>
+                            <option value="Active">Active</option>
+                            <option value="On Leave">On Leave</option>
+                            <option value="Injured">Injured</option>
+                        </select>
+                    </div>
+                    <div class="filter-item">
+                        <input type="text" class="filter-select" placeholder="Search Appellation..." id="search-filter" onkeyup="filterWorkers()">
+                    </div>
+                </div>
+
+                <table id="worker-table">
+                    <thead>
+                        <tr>
+                            <th>ID Code</th>
+                            <th>Appellation</th>
+                            <th>Designation</th>
+                            <th>Tenure</th>
+                            <th>Zone</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="worker-table-body">
+                        <!-- JS populated -->
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- 3. ATTENDANCE & BIOMETRY -->
+        <section id="attendance" class="section-container">
+            <div class="dashboard-grid">
+                <div class="ledger-card">
+                    <div class="ledger-header">
+                        <h3 class="ledger-title">Biometric Authentication Interface</h3>
+                    </div>
+                    <div class="biometric-interface">
+                        <div class="fingerprint-ring" onclick="simulateBiometric()">
+                            <svg width="60" height="60" viewBox="0 0 24 24" fill="none" stroke="#0a192f" stroke-width="1.5"><path d="M2 12C2 6.5 6.5 2 12 2a10 10 0 0 1 8 6"></path><path d="M5 19.5C5.5 18 6 15 6 12a6 6 0 0 1 6-6 6 6 0 0 1 6 6c0 3 1 9 2 12"></path><path d="M12 12a2 2 0 1 1 0 4 2 2 0 0 1 0-4z"></path></svg>
+                        </div>
+                        <p id="bio-status" style="margin-top: 1.5rem; font-style: italic; color: #666;">Click icon to commence scan</p>
+                    </div>
+                </div>
+                
+                <div class="ledger-card">
+                    <div class="ledger-header">
+                        <h3 class="ledger-title">Current Shift Log</h3>
+                    </div>
+                    <ul id="attendance-log" style="list-style: none;">
+                        <li style="padding: 1rem; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; font-family: var(--font-serif);">
+                            <span><strong>R. Fox</strong> <small>(ID: 101)</small></span>
+                            <span style="color: var(--color-success);">Check-in: 08:00</span>
+                        </li>
+                        <li style="padding: 1rem; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; font-family: var(--font-serif);">
+                            <span><strong>M. Smith</strong> <small>(ID: 102)</small></span>
+                            <span style="color: var(--color-success);">Check-in: 08:15</span>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <!-- 4. HEALTH MONITOR -->
+        <section id="health" class="section-container">
+            <div class="ledger-card">
+                <div class="ledger-header">
+                    <h3 class="ledger-title">Aggregated Physiological Data</h3>
+                    <button class="btn-elegant" onclick="showToast('Sensors Refreshing...')">Refresh Telemetry</button>
+                </div>
+                <div class="dashboard-grid">
+                    <div class="intel-card blue-border">
+                        <div class="intel-label">Avg Heart Rate</div>
+                        <div class="intel-value" style="color: var(--color-danger);">78 BPM</div>
+                    </div>
+                    <div class="intel-card green-border">
+                        <div class="intel-label">Avg SpO2 Saturation</div>
+                        <div class="intel-value" style="color: var(--color-success);">98%</div>
+                    </div>
+                    <div class="intel-card orange-border">
+                        <div class="intel-label">Fatigue Index</div>
+                        <div class="intel-value">Low</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="ledger-card">
+                <div class="ledger-header">
+                    <h3 class="ledger-title">Medical History Ledger</h3>
+                </div>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Date</th>
+                            <th>Operative</th>
+                            <th>Ailment</th>
+                            <th>Prognosis</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>2023-10-12</td>
+                            <td>R. Fox</td>
+                            <td>Transient Dizziness</td>
+                            <td>Rest & Hydration</td>
+                        </tr>
+                        <tr>
+                            <td>2023-09-05</td>
+                            <td>A. Flores</td>
+                            <td>Laceration Injury</td>
+                            <td>Sutures & Tetanus</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- 5. TRACKING -->
+        <section id="tracking" class="section-container">
+            <div class="ledger-card">
+                <div class="ledger-header">
+                    <h3 class="ledger-title">Live Geospatial Tracking</h3>
+                    <div style="display:flex; align-items:center; gap:1rem;">
+                        <span style="color: var(--color-success); font-weight:700;">● SYSTEM ONLINE</span>
+                        <button class="btn-elegant">Aerial View</button>
+                    </div>
+                </div>
+                <!-- Map Simulation -->
+                <div id="tracking-canvas">
+                    <!-- Dots injected via JS -->
+                </div>
+                <div style="margin-top: 1.5rem; display: flex; gap: 2rem; font-family: var(--font-serif); color: #666;">
+                    <span>🔵 Team Alpha (Sewer Line 4)</span>
+                    <span>🟢 Team Beta (Junction Point)</span>
+                </div>
+            </div>
+        </section>
+
+        <!-- 6. SALARY -->
+        <section id="salary" class="section-container">
+            <div class="ledger-card">
+                <div class="ledger-header">
+                    <h3 class="ledger-title">Fiscal Compensation Ledger</h3>
+                    <button class="btn-elegant">Process Remittance</button>
+                </div>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Appellation</th>
+                            <th>Base Stipend</th>
+                            <th>Hazard Allowance</th>
+                            <th>Net Total</th>
+                            <th>Remittance Status</th>
+                        </tr>
+                    </thead>
+                    <tbody id="salary-table-body">
+                        <!-- JS populated -->
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- 7. UPDATES -->
+        <section id="updates" class="section-container">
+            <div class="ledger-card">
+                <div class="ledger-header">
+                    <h3 class="ledger-title">Administrative Directives</h3>
+                </div>
+                <div style="border-left: 4px solid var(--color-danger); padding: 1.5rem; background: #fff5f5; margin-bottom: 1rem;">
+                    <strong style="font-family: var(--font-serif);">Safety Protocol Update v4.2</strong>
+                    <p style="margin-top: 0.5rem; font-size: 0.9rem;">New thresholds for gas detection have been implemented. Mandatory reading for all staff.</p>
+                    <small style="color: #888;">Today, 09:00</small>
+                </div>
+                <div style="border-left: 4px solid var(--color-ink-primary); padding: 1.5rem; background: #f8f9fa;">
+                    <strong style="font-family: var(--font-serif);">System Maintenance</strong>
+                    <p style="margin-top: 0.5rem; font-size: 0.9rem;">Scheduled downtime on Sunday at 02:00 for server maintenance.</p>
+                    <small style="color: #888;">Yesterday</small>
+                </div>
+            </div>
+        </section>
+
+        <!-- 8. EMERGENCY -->
+        <section id="emergency" class="section-container">
+            <div style="background: #ffe3e3; padding: 2rem; border: 1px solid var(--color-danger); margin-bottom: 2rem;">
+                <h2 style="color: var(--color-danger); font-family: var(--font-serif); margin-bottom: 0.5rem;">CRISIS MANAGEMENT PROTOCOL</h2>
+                <p>Immediate response channels. Activate only in the event of life-threatening circumstances.</p>
+            </div>
+
+            <div class="dashboard-grid">
+                <button class="intel-card red-border" onclick="triggerEmergency('GAS LEAK')" style="cursor: pointer; text-align: left;">
+                    <div style="font-size: 2rem; margin-bottom: 1rem;">☠️</div>
+                    <h3 style="margin-bottom: 0.5rem;">Toxic Gas Alert</h3>
+                    <p style="font-size: 0.8rem; color: #666;">Notify Hazmat teams immediately.</p>
+                </button>
+                <button class="intel-card red-border" onclick="triggerEmergency('MEDICAL')" style="cursor: pointer; text-align: left;">
+                    <div style="font-size: 2rem; margin-bottom: 1rem;">🚑</div>
+                    <h3 style="margin-bottom: 0.5rem;">Medical Emergency</h3>
+                    <p style="font-size: 0.8rem; color: #666;">Summon ambulance and paramedics.</p>
+                </button>
+                <button class="intel-card red-border" onclick="triggerEmergency('FLOODING')" style="cursor: pointer; text-align: left;">
+                    <div style="font-size: 2rem; margin-bottom: 1rem;">🌊</div>
+                    <h3 style="margin-bottom: 0.5rem;">Flash Flood</h3>
+                    <p style="font-size: 0.8rem; color: #666;">Evacuate subterranean sectors.</p>
+                </button>
+            </div>
+        </section>
+
+        <!-- 9. SETTINGS -->
+        <section id="settings" class="section-container">
+            <div class="ledger-card">
+                <div class="ledger-header">
+                    <h3 class="ledger-title">System Configuration</h3>
+                </div>
+                <div style="margin-bottom: 1.5rem;">
+                    <label style="display: block; margin-bottom: 0.5rem; font-weight: 700;">Cardiac Alert Threshold (BPM)</label>
+                    <input type="number" value="120" style="max-width: 200px;">
+                </div>
+                <div style="margin-bottom: 1.5rem;">
+                    <label style="display: block; margin-bottom: 0.5rem; font-weight: 700;">Sensor Sensitivity</label>
+                    <select style="max-width: 200px;">
+                        <option>High Precision</option>
+                        <option>Standard</option>
+                        <option>Conservation Mode</option>
+                    </select>
+                </div>
+                <button class="btn-elegant" onclick="showToast('Configuration Saved')">Save Parameters</button>
+            </div>
+        </section>
+
+        <!-- 10. CONSENT -->
+        <section id="consent" class="section-container">
+            <div class="ledger-card">
+                <div class="ledger-header">
+                    <h3 class="ledger-title">Liability Waiver & Consent</h3>
+                </div>
+                <div style="height: 150px; overflow-y: scroll; background: #f8f9fa; padding: 1.5rem; border: 1px solid #eee; font-size: 0.9rem; margin-bottom: 1.5rem;">
+                    <p><strong>OPERATIVE ACKNOWLEDGEMENT OF HAZARDS:</strong></p>
+                    <p>I, the undersigned, acknowledge that sanitation operations involve inherent risks, including exposure to noxious fumes, confined spaces, and biohazards. I agree to strictly adhere to the safety protocols as defined by the SSAS guidelines.</p>
+                    <p>I authorize the digital acquisition of biometric data for authentication purposes and location tracking for safety assurance during active shifts.</p>
+                </div>
+                
+                <div style="margin-bottom: 1.5rem;">
+                    <label style="display: block; margin-bottom: 0.5rem; font-weight: 700;">Digital Signature</label>
+                    <canvas id="signature-pad" width="800" height="200"></canvas>
+                    <button class="btn-elegant" style="background: #999; font-size: 0.8rem; padding: 0.5rem 1rem; margin-top: 0.5rem;" onclick="clearSignature()">Clear Canvas</button>
+                </div>
+
+                <label style="display: block; margin-bottom: 1.5rem;">
+                    <input type="checkbox"> I have read and accept the terms of liability.
+                </label>
+
+                <button class="btn-elegant" onclick="showToast('Consent Digitally Recorded')">Finalize Consent</button>
+            </div>
+        </section>
+
+    </main>
+
+    <script>
+        /* =========================================
+           DATA MOCK
+           ========================================= */
+        const workers = [
+            { id: 'W001', name: 'Robert Fox', role: 'Sewer Technician', exp: 'senior', zone: 'Zone A', status: 'Active', salary: 25000, hazard: 3000 },
+            { id: 'W002', name: 'Arlene McCoy', role: 'Manhole Inspector', exp: 'mid', zone: 'Zone B', status: 'Active', salary: 22000, hazard: 2000 },
+            { id: 'W003', name: 'Albert Flores', role: 'General Cleaner', exp: 'junior', zone: 'Zone A', status: 'On Leave', salary: 18000, hazard: 1500 },
+            { id: 'W004', name: 'Savannah Nguyen', role: 'Safety Officer', exp: 'senior', zone: 'Zone C', status: 'Active', salary: 35000, hazard: 5000 },
+            { id: 'W005', name: 'Jerome Bell', role: 'Sewer Technician', exp: 'mid', zone: 'Zone A', status: 'Injured', salary: 25000, hazard: 3000 },
+        ];
+
+        /* =========================================
+           ROUTING & GSAP ANIMATIONS
+           ========================================= */
+        function router(sectionId) {
+            // 1. Animate Out Current Section
+            const currentSection = document.querySelector('.section-container.active');
+            
+            if (currentSection) {
+                gsap.to(currentSection, {
+                    opacity: 0,
+                    y: -10,
+                    duration: 0.3,
+                    ease: 'power2.in',
+                    onComplete: () => {
+                        currentSection.classList.remove('active');
+                        animateInNewSection(sectionId);
+                    }
+                });
+            } else {
+                animateInNewSection(sectionId);
+            }
+
+            // Update Nav State
+            document.querySelectorAll('nav button').forEach(btn => btn.classList.remove('active'));
+            const navBtn = document.getElementById('nav-' + sectionId);
+            if(navBtn) navBtn.classList.add('active');
+
+            // Update Header Title
+            const titleMap = {
+                'dashboard': 'Command Center',
+                'workers': 'Personnel Directory',
+                'attendance': 'Biometric Attendance',
+                'health': 'Physiological Monitoring',
+                'tracking': 'Geospatial Tracking',
+                'salary': 'Fiscal Compensation',
+                'updates': 'Directives & Memos',
+                'settings': 'System Configuration',
+                'emergency': 'CRISIS PROTOCOL',
+                'consent': 'Legal Consents'
+            };
+            document.getElementById('page-title').innerText = titleMap[sectionId];
+
+            // Trigger specific load functions
+            if(sectionId === 'tracking') startTrackingAnimation();
+        }
+
+        function animateInNewSection(sectionId) {
+            const newSection = document.getElementById(sectionId);
+            newSection.classList.add('active');
+            
+            // Reset position for animation
+            gsap.set(newSection, { y: 20 });
+            
+            // Animate In
+            gsap.to(newSection, {
+                opacity: 1,
+                y: 0,
+                duration: 0.5,
+                ease: 'power2.out'
+            });
+
+            // Stagger animate children elements
+            gsap.fromTo(
+                `${newSection.id} .intel-card, ${newSection.id} .ledger-card, ${newSection.id} table tr`,
+                { opacity: 0, y: 10 },
+                { opacity: 1, y: 0, duration: 0.4, stagger: 0.05, delay: 0.1, ease: 'power1.out' }
+            );
+        }
+
+        /* =========================================
+           INITIALIZATION & DATA POPULATION
+           ========================================= */
+        window.onload = function() {
+            // Intro Animation for whole sidebar and header
+            gsap.from("aside", { x: -50, opacity: 0, duration: 1, ease: 'power3.out' });
+            gsap.from("header", { y: -20, opacity: 0, duration: 1, delay: 0.3, ease: 'power3.out' });
+
+            initDashboard();
+            filterWorkers();
+            
+            // Initial animate in for Dashboard
+            const dash = document.getElementById('dashboard');
+            gsap.fromTo('.intel-card, .ledger-card', 
+                { opacity: 0, y: 20 }, 
+                { opacity: 1, y: 0, duration: 0.6, stagger: 0.1, delay: 0.5 }
+            );
+        };
+
+        function initDashboard() {
+            // Activity Table
+            const activities = [
+                { name: 'Robert Fox', act: 'Entered Manhole Sector 402', time: '10 mins ago', status: 'Active' },
+                { name: 'Arlene McCoy', act: 'Commenced Recess', time: '25 mins ago', status: 'Break' },
+                { name: 'System', act: 'Gas Hazard Resolved', time: '1 hour ago', status: 'Resolved' },
+            ];
+            
+            const actBody = document.getElementById('activity-table-body');
+            activities.forEach(a => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `<td>${a.name}</td><td>${a.act}</td><td>${a.time}</td><td>${a.status}</td>`;
+                actBody.appendChild(tr);
+            });
+
+            // Salary Table
+            const salBody = document.getElementById('salary-table-body');
+            workers.forEach(w => {
+                const total = w.salary + w.hazard;
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td>${w.id}</td>
+                    <td>${w.name}</td>
+                    <td>₹${w.salary.toLocaleString()}</td>
+                    <td>₹${w.hazard.toLocaleString()}</td>
+                    <td><strong>₹${total.toLocaleString()}</strong></td>
+                    <td><span style="color:var(--color-warning)">Pending</span></td>
+                `;
+                salBody.appendChild(tr);
+            });
+        }
+
+        /* =========================================
+           FILTER LOGIC
+           ========================================= */
+        function filterWorkers() {
+            const exp = document.getElementById('exp-filter').value;
+            const status = document.getElementById('status-filter').value;
+            const search = document.getElementById('search-filter').value.toLowerCase();
+            const tbody = document.getElementById('worker-table-body');
+            
+            tbody.innerHTML = '';
+
+            const filtered = workers.filter(w => {
+                let matchExp = exp === 'all' || w.exp === exp;
+                let matchStatus = status === 'all' || w.status === status;
+                let matchSearch = w.name.toLowerCase().includes(search) || w.id.toLowerCase().includes(search);
+                return matchExp && matchStatus && matchSearch;
+            });
+
+            filtered.forEach(w => {
+                const tr = document.createElement('tr');
+                let statusClass = w.status === 'Active' ? 'status-active' : (w.status === 'Injured' ? 'status-injured' : 'status-leave');
+                tr.innerHTML = `
+                    <td>${w.id}</td>
+                    <td>${w.name}</td>
+                    <td>${w.role}</td>
+                    <td style="text-transform: capitalize;">${w.exp}</td>
+                    <td>${w.zone}</td>
+                    <td><span class="status-badge ${statusClass}">${w.status}</span></td>
+                    <td><button style="border:none;background:transparent;cursor:pointer;color:var(--color-ink-accent);">Review</button></td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        /* =========================================
+           BIOMETRY & EMERGENCY
+           ========================================= */
+        function simulateBiometric() {
+            const status = document.getElementById('bio-status');
+            status.innerText = "Verifying Biometric Signature...";
+            status.style.color = "#0a192f";
+            
+            // GSAP Pulse
+            gsap.to('.fingerprint-ring', { scale: 0.9, duration: 0.1, yoyo: true, repeat: 5 });
+
+            setTimeout(() => {
+                status.innerText = "Identity Verified: Robert Fox";
+                status.style.color = "var(--color-success)";
+                
+                const list = document.getElementById('attendance-log');
+                const li = document.createElement('li');
+                li.style.cssText = "padding: 1rem; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; font-family: var(--font-serif);";
+                li.innerHTML = `<span><strong>Robert Fox</strong> <small>(ID: W001)</small></span> <span style="color: var(--color-success);">IN: Just Now</span>`;
+                list.prepend(li);
+                gsap.from(li, { opacity: 0, x: -10, duration: 0.5 });
+                
+                showToast("Attendance Authenticated");
+            }, 2000);
+        }
+
+        function triggerEmergency(type) {
+            if(confirm(`ALERT: You are initiating a ${type} protocol. This will dispatch immediate response units. Proceed?`)) {
+                showToast(`🚨 ${type} PROTOCOL ACTIVATED`);
+            }
+        }
+
+        function showToast(msg) {
+            const toast = document.getElementById('toast');
+            toast.innerText = msg;
+            gsap.to(toast, { y: 0, opacity: 1, duration: 0.5, ease: 'back.out(1.7)' });
+            setTimeout(() => {
+                gsap.to(toast, { y: 100, opacity: 0, duration: 0.3 });
+            }, 3000);
+        }
+
+        /* =========================================
+           CANVAS: MAP & SIGNATURE
+           ========================================= */
+        // Signature Pad
+        const canvas = document.getElementById("signature-pad");
+        const ctx = canvas.getContext("2d");
+        let drawing = false;
+
+        canvas.addEventListener("mousedown", (e) => {
+            drawing = true;
+            ctx.beginPath();
+            ctx.moveTo(e.offsetX, e.offsetY);
+            ctx.strokeStyle = "#0a192f";
+            ctx.lineWidth = 2;
+        });
+
+        canvas.addEventListener("mousemove", (e) => {
+            if (drawing) {
+                ctx.lineTo(e.offsetX, e.offsetY);
+                ctx.stroke();
+            }
+        });
+
+        canvas.addEventListener("mouseup", () => { drawing = false; });
+        canvas.addEventListener("mouseleave", () => { drawing = false; });
+
+        function clearSignature() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+        }
+
+        // Tracking Animation
+        let trackingInterval;
+        function startTrackingAnimation() {
+            const container = document.getElementById('tracking-canvas');
+            container.innerHTML = '';
+            
+            const positions = [
+                { top: '20%', left: '30%' },
+                { top: '60%', left: '70%' },
+                { top: '40%', left: '50%' }
+            ];
+
+            workers.slice(0, 3).forEach((w, i) => {
+                const dot = document.createElement('div');
+                dot.className = 'worker-dot';
+                dot.style.top = positions[i].top;
+                dot.style.left = positions[i].left;
+                container.appendChild(dot);
+            });
+
+            if(trackingInterval) clearInterval(trackingInterval);
+
+            trackingInterval = setInterval(() => {
+                const dots = document.querySelectorAll('.worker-dot');
+                dots.forEach(dot => {
+                    const currentTop = parseInt(dot.style.top);
+                    const currentLeft = parseInt(dot.style.left);
+                    const moveTop = (Math.random() - 0.5) * 3;
+                    const moveLeft = (Math.random() - 0.5) * 3;
+                    dot.style.top = (currentTop + moveTop) + '%';
+                    dot.style.left = (currentLeft + moveLeft) + '%';
+                });
+            }, 1000);
+        }
+
+    </script>
+</body>
+</html>

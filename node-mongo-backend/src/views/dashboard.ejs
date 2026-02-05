@@ -1,0 +1,1381 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SSACC - Sanitation Safety & Assistance Command Center</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
+    
+    <style>
+        /* 
+         * CORE ARCHITECTURE & RESET 
+         * Utilizing CSS Custom Properties for theming and global consistency.
+         */
+        :root {
+            --primary-hue: 215; /* Royal Blue */
+            --primary-color: hsl(var(--primary-hue), 90%, 25%);
+            --primary-light: hsl(var(--primary-hue), 80%, 95%);
+            --accent-success: #10B981; /* Emerald */
+            --accent-warning: #F59E0B; /* Amber */
+            --accent-danger: #EF4444; /* Red */
+            --bg-body: #F8FAFC;
+            --bg-card: #FFFFFF;
+            --text-main: #1E293B;
+            --text-muted: #64748B;
+            --border-color: #E2E8F0;
+            --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+            --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+            --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+            --shadow-float: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
+            --transition-speed: 0.4s;
+            --ease-out: cubic-bezier(0.215, 0.61, 0.355, 1);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; outline: none; }
+        
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-body);
+            color: var(--text-main);
+            overflow: hidden; /* App-like feel */
+            height: 100vh;
+            display: flex;
+        }
+
+        /* 
+         * SCROLLBAR CUSTOMIZATION 
+         * For internal scrolling elements.
+         */
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #CBD5E1; border-radius: 3px; }
+        ::-webkit-scrollbar-thumb:hover { background: #94A3B8; }
+
+        /* 
+         * LAYOUT: SIDEBAR 
+         * Fixed navigation with elegant hover states.
+         */
+        #sidebar {
+            width: 280px;
+            background: var(--bg-card);
+            border-right: 1px solid var(--border-color);
+            display: flex;
+            flex-direction: column;
+            z-index: 100;
+            transition: transform var(--transition-speed) var(--ease-out);
+        }
+
+        .brand-section {
+            padding: 2rem 1.5rem;
+            border-bottom: 1px solid var(--border-color);
+            text-align: center;
+        }
+
+        .brand-logo {
+            font-family: 'Playfair Display', serif;
+            font-size: 1.5rem;
+            color: var(--primary-color);
+            letter-spacing: -0.5px;
+            margin-bottom: 0.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+        
+        .brand-logo svg { width: 32px; height: 32px; fill: var(--primary-color); }
+
+        .brand-subtitle {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: var(--text-muted);
+            font-weight: 600;
+        }
+
+        .nav-menu {
+            flex: 1;
+            padding: 1.5rem 1rem;
+            overflow-y: auto;
+        }
+
+        .nav-item {
+            display: flex;
+            align-items: center;
+            padding: 0.85rem 1rem;
+            margin-bottom: 0.5rem;
+            border-radius: 12px;
+            color: var(--text-muted);
+            text-decoration: none;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .nav-item:hover {
+            background-color: var(--primary-light);
+            color: var(--primary-color);
+            transform: translateX(5px);
+        }
+
+        .nav-item.active {
+            background-color: var(--primary-color);
+            color: #fff;
+            box-shadow: var(--shadow-md);
+        }
+
+        .nav-item svg {
+            width: 20px;
+            height: 20px;
+            margin-right: 12px;
+            fill: none;
+            stroke: currentColor;
+            stroke-width: 2;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+        }
+
+        .user-profile {
+            padding: 1.5rem;
+            border-top: 1px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background-color: #E2E8F0;
+            background-image: url('https://picsum.photos/seed/adminUser/100/100.jpg');
+            background-size: cover;
+        }
+
+        .user-info h4 { font-size: 0.9rem; font-weight: 600; }
+        .user-info p { font-size: 0.75rem; color: var(--text-muted); }
+
+        /* 
+         * LAYOUT: MAIN CONTENT 
+         */
+        #main-wrapper {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            overflow: hidden;
+        }
+
+        header {
+            height: 70px;
+            background: rgba(255, 255, 255, 0.9);
+            -webkit-backdrop-filter: blur(10px);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 2rem;
+            position: sticky;
+            top: 0;
+            z-index: 90;
+        }
+
+        .header-title h2 {
+            font-size: 1.25rem;
+            font-weight: 600;
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 1.5rem;
+            align-items: center;
+        }
+
+        .icon-btn {
+            background: none;
+            border: none;
+            cursor: pointer;
+            position: relative;
+            color: var(--text-muted);
+            transition: color 0.2s;
+        }
+
+        .icon-btn:hover { color: var(--primary-color); }
+
+        .badge {
+            position: absolute;
+            top: -5px;
+            right: -5px;
+            background: var(--accent-danger);
+            color: white;
+            font-size: 0.6rem;
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            border: 2px solid #fff;
+            animation: pulse 2s infinite;
+        }
+
+        /* 
+         * CONTENT SCROLL AREA 
+         */
+        #content-area {
+            flex: 1;
+            overflow-y: auto;
+            overflow-x: hidden;
+            padding: 2rem;
+            scroll-behavior: smooth;
+        }
+
+        .page-section {
+            display: none; /* Hidden by default */
+            opacity: 0;
+            transform: translateY(20px);
+            transition: opacity 0.5s ease, transform 0.5s ease;
+        }
+
+        .page-section.active {
+            display: block;
+        }
+        
+        .page-section.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        /* 
+         * COMPONENTS: CARDS & GRIDS 
+         */
+        .grid-dashboard {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .stat-card {
+            background: var(--bg-card);
+            padding: 1.5rem;
+            border-radius: 16px;
+            box-shadow: var(--shadow-sm);
+            border: 1px solid var(--border-color);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .stat-card::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; width: 4px; height: 100%;
+            background: var(--primary-color);
+        }
+
+        .stat-card.danger::before { background: var(--accent-danger); }
+        .stat-card.warning::before { background: var(--accent-warning); }
+        .stat-card.success::before { background: var(--accent-success); }
+
+        .stat-label { font-size: 0.85rem; color: var(--text-muted); font-weight: 500; text-transform: uppercase; }
+        .stat-value { font-size: 2rem; font-weight: 700; color: var(--text-main); margin: 0.5rem 0; }
+        .stat-trend { font-size: 0.8rem; display: flex; align-items: center; gap: 4px; }
+        .trend-up { color: var(--accent-success); }
+        .trend-down { color: var(--accent-danger); }
+
+        /* 
+         * MAP CONTAINER 
+         */
+        .map-container {
+            background: #fff;
+            border-radius: 20px;
+            box-shadow: var(--shadow-md);
+            height: 400px;
+            margin-bottom: 2rem;
+            position: relative;
+            overflow: hidden;
+            border: 1px solid var(--border-color);
+        }
+        
+        .map-overlay {
+            position: absolute;
+            top: 20px; left: 20px;
+            background: rgba(255,255,255,0.9);
+            padding: 1rem;
+            border-radius: 12px;
+            -webkit-backdrop-filter: blur(5px);
+            backdrop-filter: blur(5px);
+            box-shadow: var(--shadow-sm);
+        }
+
+        .map-placeholder {
+            width: 100%; height: 100%;
+            background: #eef2f6;
+            background-image: 
+                radial-gradient(#cbd5e1 1px, transparent 1px);
+            background-size: 20px 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+        }
+
+        /* Pulsing Map Points */
+        .map-point {
+            position: absolute;
+            width: 16px; height: 16px;
+            background: var(--primary-color);
+            border-radius: 50%;
+            cursor: pointer;
+            box-shadow: 0 0 0 rgba(15, 23, 42, 0.4);
+            animation: mapPulse 2s infinite;
+        }
+        
+        .map-point.danger { background: var(--accent-danger); animation-delay: 0.5s; }
+        
+        @keyframes mapPulse {
+            0% { box-shadow: 0 0 0 0 rgba(15, 23, 42, 0.4); }
+            70% { box-shadow: 0 0 0 10px rgba(15, 23, 42, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(15, 23, 42, 0); }
+        }
+
+        /* 
+         * DATA TABLES 
+         */
+        .table-container {
+            background: var(--bg-card);
+            border-radius: 16px;
+            box-shadow: var(--shadow-sm);
+            border: 1px solid var(--border-color);
+            overflow: hidden;
+            margin-bottom: 2rem;
+        }
+
+        table { width: 100%; border-collapse: collapse; }
+        
+        th, td {
+            padding: 1rem 1.5rem;
+            text-align: left;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        th {
+            background: #F8FAFC;
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            font-weight: 600;
+            color: var(--text-muted);
+        }
+
+        td { font-size: 0.9rem; color: var(--text-main); }
+        tr:last-child td { border-bottom: none; }
+        tr:hover td { background: #F1F5F9; }
+
+        .status-pill {
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+        
+        .status-safe { background: #DCFCE7; color: #166534; }
+        .status-warning { background: #FEF3C7; color: #92400E; }
+        .status-danger { background: #FEE2E2; color: #991B1B; }
+
+        /* 
+         * ROBOTICS INTERFACE 
+         */
+        .robotics-grid {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 1.5rem;
+        }
+
+        .camera-feed {
+            background: #000;
+            border-radius: 16px;
+            height: 400px;
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .camera-overlay {
+            position: absolute;
+            top: 20px; left: 20px; right: 20px;
+            display: flex;
+            justify-content: space-between;
+            color: #fff;
+            font-family: monospace;
+            z-index: 10;
+        }
+
+        .thermal-mode .camera-feed {
+            background: linear-gradient(45deg, #000, #200000, #500000);
+        }
+
+        .scan-line {
+            position: absolute;
+            top: 0; left: 0; right: 0;
+            height: 2px;
+            background: rgba(255,255,255,0.5);
+            box-shadow: 0 0 10px rgba(255,255,255,0.8);
+            animation: scan 3s linear infinite;
+            z-index: 5;
+        }
+
+        .detection-box {
+            position: absolute;
+            border: 2px solid var(--accent-danger);
+            background: rgba(239, 68, 68, 0.2);
+            color: var(--accent-danger);
+            font-family: monospace;
+            font-size: 0.8rem;
+            padding: 4px;
+            display: none; /* Toggled by JS */
+        }
+
+        @keyframes scan {
+            0% { top: 0%; opacity: 0; }
+            10% { opacity: 1; }
+            90% { opacity: 1; }
+            100% { top: 100%; opacity: 0; }
+        }
+
+        /* 
+         * ANIMATION CLASSES 
+         */
+        .fade-in-up { animation: fadeInUp 0.8s var(--ease-out) forwards; opacity: 0; transform: translateY(30px); }
+        .delay-1 { animation-delay: 0.1s; }
+        .delay-2 { animation-delay: 0.2s; }
+        .delay-3 { animation-delay: 0.3s; }
+        .delay-4 { animation-delay: 0.4s; }
+
+        @keyframes fadeInUp {
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.2); }
+            100% { transform: scale(1); }
+        }
+
+        /* 
+         * NOTIFICATIONS / TOAST 
+         */
+        #toast-container {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            z-index: 1000;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .toast {
+            background: white;
+            border-left: 4px solid var(--primary-color);
+            padding: 1rem 1.5rem;
+            border-radius: 8px;
+            box-shadow: var(--shadow-float);
+            min-width: 300px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            animation: slideInRight 0.4s ease;
+        }
+
+        @keyframes slideInRight {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+
+        /* 
+         * SPECIALIZED CONTROLS 
+         */
+        .control-panel {
+            background: var(--bg-card);
+            padding: 1.5rem;
+            border-radius: 16px;
+            border: 1px solid var(--border-color);
+        }
+
+        .toggle-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid #f1f5f9;
+        }
+
+        .toggle-row:last-child { border-bottom: none; margin-bottom: 0; padding-bottom: 0; }
+
+        .switch {
+            position: relative;
+            display: inline-block;
+            width: 40px;
+            height: 24px;
+        }
+        .switch input { opacity: 0; width: 0; height: 0; }
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background-color: #cbd5e1;
+            transition: .4s;
+            border-radius: 24px;
+        }
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 18px;
+            width: 18px;
+            left: 3px;
+            bottom: 3px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+        input:checked + .slider { background-color: var(--primary-color); }
+        input:checked + .slider:before { transform: translateX(16px); }
+
+        /* 360 Viewer Styles */
+        .viewer-360 {
+            width: 100%; height: 100%;
+            perspective: 1000px;
+            overflow: hidden;
+        }
+        
+        .cube {
+            width: 200px; height: 200px;
+            position: relative;
+            transform-style: preserve-3d;
+            transform: rotateX(-20deg) rotateY(-30deg);
+            margin: 100px auto;
+            animation: spin 20s infinite linear;
+        }
+        
+        .face {
+            position: absolute;
+            width: 200px; height: 200px;
+            background: rgba(15, 23, 42, 0.9);
+            border: 2px solid rgba(255,255,255,0.2);
+            display: flex; align-items: center; justify-content: center;
+            color: white; font-size: 2rem; font-weight: bold;
+            opacity: 0.8;
+        }
+        
+        .front  { transform: rotateY(0deg) translateZ(100px); }
+        .back   { transform: rotateY(180deg) translateZ(100px); }
+        .right  { transform: rotateY(90deg) translateZ(100px); }
+        .left   { transform: rotateY(-90deg) translateZ(100px); }
+        .top    { transform: rotateX(90deg) translateZ(100px); }
+        .bottom { transform: rotateX(-90deg) translateZ(100px); }
+
+        @keyframes spin {
+            from { transform: rotateX(-20deg) rotateY(0deg); }
+            to { transform: rotateX(-20deg) rotateY(360deg); }
+        }
+
+        /* Responsive */
+        @media (max-width: 1024px) {
+            .grid-dashboard { grid-template-columns: repeat(2, 1fr); }
+            .robotics-grid { grid-template-columns: 1fr; }
+        }
+        @media (max-width: 768px) {
+            #sidebar { position: absolute; height: 100%; transform: translateX(-100%); }
+            #sidebar.open { transform: translateX(0); }
+            .grid-dashboard { grid-template-columns: 1fr; }
+        }
+
+        /* Typography Utilities */
+        .h1-title { font-family: 'Playfair Display', serif; font-size: 2.5rem; margin-bottom: 0.5rem; }
+        .section-header { margin-bottom: 1.5rem; display: flex; justify-content: space-between; align-items: center; }
+        .section-title { font-size: 1.25rem; font-weight: 600; color: var(--text-main); }
+        .text-sm { font-size: 0.875rem; color: var(--text-muted); }
+        .btn {
+            background: var(--primary-color); color: white; border: none; padding: 0.6rem 1.2rem;
+            border-radius: 8px; font-weight: 500; cursor: pointer; transition: background 0.2s;
+            display: inline-flex; align-items: center; gap: 8px;
+        }
+        .btn:hover { background: #1e3a8a; }
+        .btn-outline { background: transparent; border: 1px solid var(--border-color); color: var(--text-main); }
+        .btn-outline:hover { background: #f1f5f9; }
+        .dashboard-btn {
+    margin-left: auto;
+    padding: 0.6rem 1.2rem;
+    background: linear-gradient(135deg, #0ea5e9, #2563eb);
+    color: white;
+    font-size: 0.9rem;
+    font-weight: 500;
+    border-radius: 999px;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    box-shadow: 0 4px 14px rgba(37, 99, 235, 0.35);
+    transition: all 0.25s ease;
+}
+
+.dashboard-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 18px rgba(37, 99, 235, 0.45);
+    background: linear-gradient(135deg, #0284c7, #1d4ed8);
+}
+
+.section-header {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+.workers-dashboard-btn {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 0.75rem 1.2rem;
+    border-radius: 999px;
+    background: linear-gradient(135deg, #16a34a, #15803d);
+    color: white;
+    font-weight: 600;
+    text-decoration: none;
+    box-shadow: 0 6px 16px rgba(22, 163, 74, 0.35);
+    transition: all 0.3s ease;
+}
+
+.workers-dashboard-btn:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 10px 22px rgba(22, 163, 74, 0.45);
+    background: linear-gradient(135deg, #15803d, #166534);
+}
+
+
+    </style>
+</head>
+<body>
+
+    <!-- SIDEBAR NAVIGATION -->
+    <nav id="sidebar">
+        <div class="brand-section">
+            <div class="brand-logo">
+                <svg viewBox="0 0 24 24">
+                    <path d="M12 2L2 7l10 5 10-5-10-5zm0 9l2.5-1.25L12 8.5l-2.5 1.25L12 11zm0 2.5l-5-2.5-5 2.5L12 22l10-8.5-5-2.5-5 2.5z"/>
+                </svg>
+                SSACC Solapur
+            </div>
+            <div class="brand-subtitle">Sanitation Safety Command</div>
+        </div>
+
+        <div class="nav-menu">
+            <a onclick="navigateTo('dashboard')" class="nav-item active" id="nav-dashboard">
+                <svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>
+                Executive Overview
+            </a>
+            <a onclick="navigateTo('personnel')" class="nav-item" id="nav-personnel">
+                <svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+                Personnel Management
+            </a>
+            <a onclick="navigateTo('infrastructure')" class="nav-item" id="nav-infrastructure">
+                <svg viewBox="0 0 24 24"><path d="M2 20h20"></path><path d="M5 20V8a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v12"></path><path d="M10 20v-6h4v6"></path></svg>
+                Infrastructure & Sewers
+            </a>
+            <a onclick="navigateTo('robotics')" class="nav-item" id="nav-robotics">
+                <svg viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="10" rx="2"></rect><circle cx="12" cy="5" r="2"></circle><path d="M12 7v4"></path><line x1="8" y1="16" x2="8" y2="16"></line><line x1="16" y1="16" x2="16" y2="16"></line></svg>
+                Robotic Telemetry
+            </a>
+            <a onclick="navigateTo('solapur')" class="nav-item" id="nav-solapur">
+                <svg viewBox="0 0 24 24"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>
+                Manhole & Sewer Workers
+            </a>
+            <a onclick="navigateTo('documents')" class="nav-item" id="nav-documents">
+                <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+                Consent & Compliance
+            </a>
+        </div>
+
+        <div class="user-profile">
+            <div class="avatar"></div>
+            <div class="user-info">
+                <h4>Admin Officer</h4>
+                <p>Solapur Municipal Corp</p>
+            </div>
+            <button onclick="logout()" title="Logout" style="margin-left:auto; border:none; background:none; cursor:pointer;">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#EF4444" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
+            </button>
+        </div>
+    </nav>
+
+    <!-- MAIN CONTENT WRAPPER -->
+    <main id="main-wrapper">
+        
+        <!-- HEADER -->
+        <header>
+            <div class="header-title">
+                <h2 id="page-title">Executive Dashboard</h2>
+            </div>
+            <div class="header-actions">
+                <div class="search-bar">
+                    <!-- Placeholder for search functionality -->
+                </div>
+                <button class="icon-btn" onclick="toggleNotifications()">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg>
+                    <span class="badge" id="notif-count">3</span>
+                </button>
+                <button type="button" class="icon-btn" title="Settings">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
+                </button>
+            </div>
+        </header>
+
+        <!-- CONTENT AREA -->
+        <div id="content-area">
+
+            <!-- 1. DASHBOARD HOME -->
+            <section id="dashboard" class="page-section active">
+                <div class="grid-dashboard">
+                    <div class="stat-card fade-in-up">
+                        <div class="stat-label">Active Sanitation Personnel</div>
+                        <div class="stat-value" data-target="1420">0</div>
+                        <div class="stat-trend trend-up"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"></polyline><polyline points="17 6 23 6 23 12"></polyline></svg> +12% from yesterday</div>
+                    </div>
+                    <div class="stat-card warning fade-in-up delay-1">
+                        <div class="stat-label">Critical Toxicity Alerts</div>
+                        <div class="stat-value" data-target="5">0</div>
+                        <div class="stat-trend trend-down">Immediate attention required</div>
+                    </div>
+                    <div class="stat-card success fade-in-up delay-2">
+                        <div class="stat-label">Sewer Lines Cleaned</div>
+                        <div class="stat-value" data-target="89">0</div>
+                        <div class="stat-trend trend-up">98% efficiency rate</div>
+                    </div>
+                    <div class="stat-card danger fade-in-up delay-3">
+                        <div class="stat-label">Reptile Encounters</div>
+                        <div class="stat-value" data-target="12">0</div>
+                        <div class="stat-trend trend-down">Robot intervention engaged</div>
+                    </div>
+                </div>
+
+                <div class="section-header">
+                    <h3 class="section-title">Live Solapur District Surveillance</h3>
+                    <div class="text-sm">Real-time GPS & Sensor Data Uplink</div>
+                </div>
+
+                <div class="map-container fade-in-up delay-2">
+                    <div class="map-placeholder" id="district-map">
+                        <!-- Map Points injected via JS -->
+                        <div class="map-overlay">
+                            <strong>Solapur District</strong><br>
+                            <span class="text-sm">Lat: 17.6599° N, Lon: 75.9064° E</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="section-header">
+                    <h3 class="section-title">Recent Critical Advisories</h3>
+                </div>
+                <div class="table-container fade-in-up delay-3">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Time</th>
+                                <th>Zone</th>
+                                <th>Anomaly Type</th>
+                                <th>Status</th>
+                                <th>Action Taken</th>
+                            </tr>
+                        </thead>
+                        <tbody id="alerts-table-body">
+                            <!-- Populated by JS -->
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <!-- 2. PERSONNEL MANAGEMENT -->
+            <section id="personnel" class="page-section">
+    <div class="section-header">
+        <h3 class="section-title">Supervisors Management Directory</h3>
+
+        <a href="/supervisors" class="btn">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <line x1="12" y1="5" x2="12" y2="19"></line>
+                <line x1="5" y1="12" x2="19" y2="12"></line>
+            </svg>
+            Go to Supervisors Dashboard
+        </a>
+    </div>
+
+    <div class="grid-dashboard" style="grid-template-columns: repeat(3, 1fr);">
+        <div class="stat-card">
+            <div class="stat-label">Total Supervisors</div>
+            <div class="stat-value">45</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-label">On Field Duty</div>
+            <div class="stat-value">32</div>
+        </div>
+        <div class="stat-card danger">
+            <div class="stat-label">Supervisors in Critical Zones</div>
+            <div class="stat-value">2</div>
+        </div>
+    </div>
+
+    <div class="table-container">
+        <table>
+            <thead>
+                <tr>
+                    <th>Supervisor ID</th>
+                    <th>Name</th>
+                    <th>Assigned Zone</th>
+                    <th>Active Workers Monitoring</th>
+                    <th>Communication Status</th>
+                    <th>Shift Duration</th>
+                    <th>Operational Status</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>SUP-201</td>
+                    <td>Ramesh Kumar</td>
+                    <td>Zone A - Central</td>
+                    <td>28 Workers</td>
+                    <td><span style="color:#10B981">Connected</span></td>
+                    <td>6 hrs</td>
+                    <td><span class="status-pill status-safe">Active</span></td>
+                </tr>
+                <tr>
+                    <td>SUP-187</td>
+                    <td>Suresh Patil</td>
+                    <td>Zone B - Industrial</td>
+                    <td>35 Workers</td>
+                    <td><span style="color:#F59E0B">Weak Signal</span></td>
+                    <td>8 hrs</td>
+                    <td><span class="status-pill status-warning">Monitoring Alert</span></td>
+                </tr>
+                <tr>
+                    <td>SUP-214</td>
+                    <td>Anjali Deshmukh</td>
+                    <td>Zone C - Residential</td>
+                    <td>22 Workers</td>
+                    <td><span style="color:#10B981">Connected</span></td>
+                    <td>5 hrs</td>
+                    <td><span class="status-pill status-safe">Active</span></td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</section>
+
+
+            <!-- 3. INFRASTRUCTURE -->
+            <section id="infrastructure" class="page-section">
+                <div class="section-header">
+                    <h3 class="section-title">Workforce Attendance & Shift Management</h3>
+                    <a href="/attendance" class="btn btn-outline">Go to Attendance Dashboard</a>
+                </div>
+
+                <div class="grid-dashboard" style="grid-template-columns: 1fr 1fr;">
+        <div class="stat-card">
+            <div class="stat-label">Workers Present Today</div>
+            <div class="stat-value">128</div>
+            <div class="stat-trend trend-up">92% Attendance Rate</div>
+        </div>
+        <div class="stat-card warning">
+            <div class="stat-label">Absent / On Leave</div>
+            <div class="stat-value">11</div>
+            <div class="stat-trend">Includes sick & emergency leave</div>
+        </div>
+    </div>
+
+    <div class="map-container" style="height: 500px;">
+        <div class="map-placeholder" style="background: #1e293b; color: #fff;">
+            <div style="text-align: center;">
+                <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                    <rect x="3" y="4" width="18" height="18" rx="2"></rect>
+                    <line x1="16" y1="2" x2="16" y2="6"></line>
+                    <line x1="8" y1="2" x2="8" y2="6"></line>
+                    <line x1="3" y1="10" x2="21" y2="10"></line>
+                </svg>
+                <p style="margin-top:1rem">Shift & Attendance Monitoring Panel</p>
+                <p class="text-sm" style="color:#94a3b8">Live shift tracking • Check-in/out logs • Role allocation</p>
+            </div>
+        </div>
+    </div>
+            </section>
+    <div class="grid-dashboard" style="grid-template-columns: 1fr 1fr;">
+        <div class="stat-card">
+            <div class="stat-label">Workers Present Today</div>
+            <div class="stat-value">128</div>
+            <div class="stat-trend trend-up">92% Attendance Rate</div>
+        </div>
+        <div class="stat-card warning">
+            <div class="stat-label">Absent / On Leave</div>
+            <div class="stat-value">11</div>
+            <div class="stat-trend">Includes sick & emergency leave</div>
+        </div>
+    </div>
+
+    <div class="map-container" style="height: 500px;">
+        <div class="map-placeholder" style="background: #1e293b; color: #fff;">
+            <div style="text-align: center;">
+                <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                    <rect x="3" y="4" width="18" height="18" rx="2"></rect>
+                    <line x1="16" y1="2" x2="16" y2="6"></line>
+                    <line x1="8" y1="2" x2="8" y2="6"></line>
+                    <line x1="3" y1="10" x2="21" y2="10"></line>
+                </svg>
+                <p style="margin-top:1rem">Shift & Attendance Monitoring Panel</p>
+                <p class="text-sm" style="color:#94a3b8">Live shift tracking • Check-in/out logs • Role allocation</p>
+            </div>
+        </div>
+    </div>
+</section>
+            <!-- 4. ROBOTICS -->
+            <section id="robotics" class="page-section">
+                <div class="section-header">
+    <h3 class="section-title">Robotic Telemetry & Control</h3>
+    <span class="status-pill status-safe">All Systems Online</span>
+
+    <!-- NEW DASHBOARD BUTTON -->
+    <a href="/robots" class="dashboard-btn">
+        Open Robotic Dashboard →
+    </a>
+</div>
+
+
+                <div class="robotics-grid">
+                    <!-- Camera Feed -->
+                    <div class="camera-feed" id="robot-camera">
+                        <div class="camera-overlay">
+                            <span>CAM-01: Sewer Line Alpha</span>
+                            <span>LIVE ● REC</span>
+                        </div>
+                        <div class="scan-line"></div>
+                        <div class="detection-box" id="reptile-alert" style="top: 40%; left: 50%; width: 100px; height: 100px;">
+                            <span>REPTILE DETECTED</span><br>
+                            <small>CONFIDENCE: 98%</small>
+                        </div>
+                        
+                        <!-- Simulated 360 Cube or Flat View -->
+                        <div class="viewer-360" id="view-360" style="display:none;">
+                            <div class="cube">
+                                <div class="face front">FRONT</div>
+                                <div class="face back">BACK</div>
+                                <div class="face right">RIGHT</div>
+                                <div class="face left">LEFT</div>
+                                <div class="face top">TOP</div>
+                                <div class="face bottom">BTM</div>
+                            </div>
+                        </div>
+                        
+                        <div id="view-normal" style="text-align:center; color:#fff;">
+                            <svg width="100" height="100" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.5)" stroke-width="1"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path><circle cx="12" cy="13" r="4"></circle></svg>
+                            <p style="margin-top:1rem; opacity: 0.7;">Optical Sensor Feed</p>
+                        </div>
+                    </div>
+
+                    <!-- Controls -->
+                    <div class="control-panel">
+                        <h4 style="margin-bottom: 1.5rem;">Worker Safety Controls</h4>
+    
+                        <div class="toggle-row">
+                            <span>Live Health Monitoring</span>
+                            <label class="switch">
+                            <input type="checkbox" id="health-toggle" onchange="toggleHealth()">
+                            <span class="slider"></span>
+                            </label>
+                        </div>
+    
+                        <div class="toggle-row">
+                            <span>GPS Location Tracking</span>
+                            <label class="switch">
+                            <input type="checkbox" id="gps-toggle" onchange="toggleGPS()">
+                            <span class="slider"></span>
+                        </label>
+                        </div>
+
+                        <div class="toggle-row">
+                            <span>Hazard Detection Alerts</span>
+                            <label class="switch">
+                            <input type="checkbox" checked onchange="toggleHazardAlerts()">
+                            <span class="slider"></span>
+                            </label>
+                        </div>
+
+                        <div style="margin-top: 2rem;">
+                            <button class="btn" style="width: 100%; justify-content: center; margin-bottom: 10px;" onclick="sendSafetyCheck()">
+                                Run Safety Check
+                            </button>
+                            <button class="btn btn-outline" style="width: 100%; justify-content: center;" onclick="emergencyAssist()">
+                                Emergency Assistance
+                            </button>
+                        </div>
+
+    <!-- Workers Dashboard Button -->
+                    
+
+                        <div style="margin-top: 2rem;">
+                            <h5 style="margin-bottom: 0.5rem; color: var(--text-muted);">Worker Environment Status</h5>
+        
+                            <div style="display: flex; align-items: center; gap: 1rem;">
+                            <div class="status-indicator status-safe"></div>
+                            <span>Safe Environment</span>
+                        </div>
+                    </div> <!-- CLOSES control-panel -->
+
+                    </div>
+            </section>
+
+            <!-- 5. SOLAPUR DISTRICT -->
+            <section id="solapur" class="page-section">
+                <div class="section-header">
+                    <h3 class="section-title">Solapur District Analytics</h3>
+                </div>
+                <div style="margin-top: 1.5rem;"><a href="/worker" class="workers-dashboard-btn">👷 Go to Workers Dashboard</a></div>
+                <div style="background: white; padding: 2rem; border-radius: 16px; border: 1px solid var(--border-color);">
+                    <h4 style="margin-bottom: 1rem;">District Overview</h4>
+                    <p class="text-sm" style="margin-bottom: 1.5rem; line-height: 1.6;">
+                        The sanitation infrastructure of Solapur is currently operating at optimal efficiency. 
+                        Covering an area of 14,844 square kilometers, the SSACC system monitors 11 talukas.
+                        Current weather conditions are favorable for desilting operations in the Northern belt.
+                    </p>
+                    
+                    <div class="grid-dashboard" style="grid-template-columns: repeat(2, 1fr);">
+                        <div>
+                            <h5>Zone A Performance</h5>
+                            <div style="margin-top: 10px; height: 10px; background: #f1f5f9; border-radius: 5px; overflow: hidden;">
+                                <div style="width: 92%; height: 100%; background: var(--primary-color);"></div>
+                            </div>
+                            <div class="text-sm" style="margin-top: 5px;">92% Completion</div>
+                        </div>
+                        <div>
+                            <h5>Zone B Performance</h5>
+                            <div style="margin-top: 10px; height: 10px; background: #f1f5f9; border-radius: 5px; overflow: hidden;">
+                                <div style="width: 78%; height: 100%; background: var(--primary-color);"></div>
+                            </div>
+                            <div class="text-sm" style="margin-top: 5px;">78% Completion</div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+             <!-- 6. DOCUMENTS -->
+             <section id="documents" class="page-section">
+                <div class="section-header">
+                    <h3 class="section-title">Consent Letters & Compliance</h3>
+                </div>
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Document Type</th>
+                                <th>Issued To</th>
+                                <th>Date</th>
+                                <th>Status</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>Hazardous Entry Consent</td>
+                                <td>Team Alpha-9</td>
+                                <td>Oct 24, 2023</td>
+                                <td><span class="status-pill status-safe">Signed</span></td>
+                                <td><button class="btn-outline" style="padding: 2px 8px; font-size: 0.7rem;">Download</button></td>
+                            </tr>
+                            <tr>
+                                <td>Robot Indemnity Form</td>
+                                <td>Municipal Corp</td>
+                                <td>Oct 22, 2023</td>
+                                <td><span class="status-pill status-warning">Pending Review</span></td>
+                                <td><button class="btn-outline" style="padding: 2px 8px; font-size: 0.7rem;">Review</button></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+        </div>
+    </main>
+
+    <!-- TOAST CONTAINER -->
+    <div id="toast-container"></div>
+
+    <script>
+        // 
+        // STATE MANAGEMENT & NAVIGATION ENGINE
+        //
+        const appState = {
+            currentSection: 'dashboard',
+            personnel: 1420,
+            alerts: [
+                { time: '10:42 AM', zone: 'Zone B', type: 'High Methane', status: 'Resolved', action: 'Ventilation Activated' },
+                { time: '09:15 AM', zone: 'Sector 4', type: 'Reptile Sight', status: 'Active', action: 'Robot Deployed' },
+                { time: '08:30 AM', zone: 'Zone A', type: 'Suit Breach', status: 'Resolved', action: 'Worker Extracted' }
+            ]
+        };
+
+        // DOM Elements
+        const contentArea = document.getElementById('content-area');
+        const sections = document.querySelectorAll('.page-section');
+        const navItems = document.querySelectorAll('.nav-item');
+        const pageTitle = document.getElementById('page-title');
+
+        // Navigation Logic
+        function navigateTo(targetId) {
+            // Update Sidebar
+            navItems.forEach(item => item.classList.remove('active'));
+            document.getElementById(`nav-${targetId}`).classList.add('active');
+
+            // Update Main Content with Animation
+            const currentSection = document.getElementById(appState.currentSection);
+            const nextSection = document.getElementById(targetId);
+
+            currentSection.classList.remove('visible');
+            
+            setTimeout(() => {
+                currentSection.classList.remove('active');
+                nextSection.classList.add('active');
+                
+                // Trigger Reflow
+                void nextSection.offsetWidth; 
+                
+                nextSection.classList.add('visible');
+                
+                // Update Title
+                const titles = {
+                    'dashboard': 'Executive Dashboard',
+                    'personnel': 'Personnel Management',
+                    'infrastructure': 'Infrastructure Monitoring',
+                    'robotics': 'Robotic Telemetry',
+                    'solapur': 'Solapur District Analytics',
+                    'documents': 'Legal & Compliance'
+                };
+                pageTitle.textContent = titles[targetId];
+                
+                appState.currentSection = targetId;
+
+                // If navigating to dashboard, restart counters
+                if(targetId === 'dashboard') {
+                    runStatsAnimation();
+                }
+            }, 400);
+        }
+
+        // 
+        // ANIMATION & OBSERVER LOGIC
+        //
+        const observerOptions = {
+            root: contentArea,
+            threshold: 0.1
+        };
+
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.style.animationPlayState = 'running';
+                    observer.unobserve(entry.target);
+                }
+            });
+        }, observerOptions);
+
+        // Initialize Observers
+        document.querySelectorAll('.fade-in-up').forEach(el => {
+            el.style.animationPlayState = 'paused';
+            observer.observe(el);
+        });
+
+        // 
+        // DATA POPULATION & MOCK LOGIC
+        //
+        function populateAlerts() {
+            const tbody = document.getElementById('alerts-table-body');
+            tbody.innerHTML = '';
+            appState.alerts.forEach(alert => {
+                const tr = document.createElement('tr');
+                const statusClass = alert.status === 'Active' ? 'status-danger' : 'status-safe';
+                tr.innerHTML = `
+                    <td>${alert.time}</td>
+                    <td>${alert.zone}</td>
+                    <td>${alert.type}</td>
+                    <td><span class="status-pill ${statusClass}">${alert.status}</span></td>
+                    <td>${alert.action}</td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        function createMapPoints() {
+            const map = document.getElementById('district-map');
+            // Create random points
+            for(let i=0; i<8; i++) {
+                const point = document.createElement('div');
+                point.className = `map-point ${Math.random() > 0.8 ? 'danger' : ''}`;
+                point.style.top = `${Math.random() * 80 + 10}%`;
+                point.style.left = `${Math.random() * 80 + 10}%`;
+                point.onclick = () => showToast(`Sensor ${100+i}: Optimal Functionality`);
+                map.appendChild(point);
+            }
+        }
+
+        function runStatsAnimation() {
+            document.querySelectorAll('.stat-value').forEach(counter => {
+                const target = +counter.getAttribute('data-target');
+                if(!target) return;
+                
+                const updateCount = () => {
+                    const count = +counter.innerText;
+                    const speed = target / 50;
+                    if(count < target) {
+                        counter.innerText = Math.ceil(count + speed);
+                        setTimeout(updateCount, 30);
+                    } else {
+                        counter.innerText = target;
+                    }
+                };
+                updateCount();
+            });
+        }
+
+        // 
+        // ROBOTICS CONTROLS
+        //
+        function toggleThermal() {
+            const camera = document.getElementById('robot-camera');
+            const isActive = document.getElementById('thermal-toggle').checked;
+            if(isActive) {
+                camera.classList.add('thermal-mode');
+                showToast("Thermal Vision Overlay Activated");
+            } else {
+                camera.classList.remove('thermal-mode');
+                showToast("Optical Feed Restored");
+            }
+        }
+
+        function toggle360() {
+            const view360 = document.getElementById('view-360');
+            const viewNormal = document.getElementById('view-normal');
+            const isActive = document.getElementById('view-toggle').checked;
+            
+            if(isActive) {
+                view360.style.display = 'block';
+                viewNormal.style.display = 'none';
+                showToast("360 Telemetry Engaged");
+            } else {
+                view360.style.display = 'none';
+                viewNormal.style.display = 'block';
+                showToast("Standard View Restored");
+            }
+        }
+
+        function toggleDetection() {
+            const alertBox = document.getElementById('reptile-alert');
+            const isActive = document.getElementById('detection-toggle') ? document.getElementById('detection-toggle').checked : true; // Default on
+            
+            if(isActive) {
+                // Simulate detection after 2 seconds
+                setTimeout(() => {
+                    alertBox.style.display = 'block';
+                    showToast("WARNING: REPTILE DETECTED", "danger");
+                }, 2000);
+            } else {
+                alertBox.style.display = 'none';
+            }
+        }
+
+        function triggerScan() {
+            showToast("Initiating Sector Scan...");
+            const scanLine = document.querySelector('.scan-line');
+            scanLine.style.display = 'block';
+            setTimeout(() => {
+                showToast("Scan Complete. No Hazards Found.");
+            }, 3000);
+        }
+
+        // 
+        // NOTIFICATION SYSTEM
+        //
+        function toggleNotifications() {
+            showToast("Notification Center: 3 New Messages");
+        }
+
+        function showToast(message, type = 'info') {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            toast.className = 'toast';
+            
+            let borderColor = 'var(--primary-color)';
+            if(type === 'danger') borderColor = 'var(--accent-danger)';
+            
+            toast.style.borderLeftColor = borderColor;
+            toast.innerHTML = `
+                <span>${message}</span>
+                <button onclick="this.parentElement.remove()" style="background:none;border:none;cursor:pointer;font-size:1.2rem">&times;</button>
+            `;
+            
+            container.appendChild(toast);
+            
+            // Auto remove
+            setTimeout(() => {
+                toast.style.opacity = '0';
+                toast.style.transform = 'translateX(100%)';
+                setTimeout(() => toast.remove(), 500);
+            }, 4000);
+        }
+
+        function logout() {
+            if(confirm("Terminate Secure Session?")) {
+                document.body.innerHTML = `
+                    <div style="height:100vh; display:flex; align-items:center; justify-content:center; background:white; flex-direction:column;">
+                        <h1 style="font-family:'Playfair Display', serif; color:#1e293b;">Session Terminated</h1>
+                        <p style="color:#64748b;">Redirecting to login...</p>
+                    </div>
+                `;
+            }
+        }
+
+        // 
+        // INITIALIZATION
+        //
+        window.addEventListener('DOMContentLoaded', () => {
+            populateAlerts();
+            createMapPoints();
+            
+            // Start animations for dashboard
+            setTimeout(() => {
+                document.getElementById('dashboard').classList.add('visible');
+                runStatsAnimation();
+            }, 100);
+
+            // Attach detection listener
+            document.querySelector('.control-panel input[type="checkbox"]:nth-of-type(3)').addEventListener('change', toggleDetection);
+        });
+
+    </script>
+    <script>
+function toggleHealth() { console.log("Health monitoring toggled"); }
+function toggleGPS() { console.log("GPS tracking toggled"); }
+function toggleHazardAlerts() { console.log("Hazard alerts toggled"); }
+function sendSafetyCheck() { alert("Running full worker safety diagnostics..."); }
+function emergencyAssist() { alert("Emergency assistance team alerted!"); }
+</script>
+
+</body>
+</html>

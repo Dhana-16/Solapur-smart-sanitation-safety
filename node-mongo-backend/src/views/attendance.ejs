@@ -1,0 +1,1266 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SaniSafe | Ultimate Sanitation Worker Safety Dashboard</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        /* =========================================
+           1. CORE VARIABLES & RESET
+           ========================================= */
+        :root {
+            /* Palette - Clean White, Safety Blue, Alert Orange, Success Green */
+            --bg-body: #f1f5f9;
+            --bg-card: #ffffff;
+            --bg-sidebar: #ffffff;
+            
+            --text-primary: #1e293b;
+            --text-secondary: #64748b;
+            --text-light: #94a3b8;
+
+            --primary: #3b82f6;      /* Safety Blue */
+            --primary-dark: #2563eb;
+            --primary-light: #eff6ff;
+            
+            --accent: #f59e0b;       /* Safety Orange/Yellow */
+            --accent-light: #fffbeb;
+
+            --success: #10b981;      /* Green */
+            --success-light: #ecfdf5;
+
+            --danger: #ef4444;       /* Red */
+            --danger-light: #fef2f2;
+
+            --border: #e2e8f0;
+            --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+            --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+            --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+            --shadow-glow: 0 0 15px rgba(59, 130, 246, 0.3);
+
+            --font-main: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            --radius-md: 12px;
+            --radius-lg: 16px;
+            --radius-full: 9999px;
+
+            --sidebar-width: 280px;
+            --header-height: 80px;
+            
+            --anim-fast: 0.2s ease;
+            --anim-smooth: 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            --anim-bounce: 0.6s cubic-bezier(0.68, -0.55, 0.27, 1.55);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: var(--font-main);
+            background-color: var(--bg-body);
+            color: var(--text-primary);
+            overflow-x: hidden;
+            height: 100vh;
+            display: flex;
+        }
+
+        /* Scrollbar Styling */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
+
+        /* =========================================
+           2. SIDEBAR NAVIGATION
+           ========================================= */
+        .sidebar {
+            width: var(--sidebar-width);
+            background: var(--bg-sidebar);
+            border-right: 1px solid var(--border);
+            display: flex;
+            flex-direction: column;
+            padding: 2rem 1.5rem;
+            position: fixed;
+            height: 100%;
+            z-index: 50;
+            transition: transform var(--anim-smooth);
+        }
+
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 3rem;
+            animation: fadeInDown 0.8s ease;
+        }
+
+        .brand-logo {
+            width: 42px;
+            height: 42px;
+            background: var(--primary);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 1.2rem;
+            box-shadow: var(--shadow-glow);
+        }
+
+        .brand-text h1 {
+            font-size: 1.25rem;
+            font-weight: 700;
+            letter-spacing: -0.5px;
+            color: var(--text-primary);
+        }
+
+        .brand-text p {
+            font-size: 0.75rem;
+            color: var(--text-light);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .nav-menu {
+            list-style: none;
+            flex: 1;
+        }
+
+        .nav-item {
+            margin-bottom: 0.5rem;
+        }
+
+        .nav-link {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            padding: 14px 16px;
+            text-decoration: none;
+            color: var(--text-secondary);
+            border-radius: var(--radius-md);
+            font-weight: 500;
+            transition: all var(--anim-fast);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .nav-link i {
+            font-size: 1.1rem;
+            width: 20px;
+            text-align: center;
+            transition: transform 0.3s ease;
+        }
+
+        .nav-link:hover {
+            background-color: var(--primary-light);
+            color: var(--primary);
+            transform: translateX(4px);
+        }
+
+        .nav-link:hover i {
+            transform: scale(1.1);
+        }
+
+        .nav-link.active {
+            background-color: var(--primary);
+            color: white;
+            box-shadow: var(--shadow-md);
+        }
+
+        .nav-link.active::after {
+            content: '';
+            position: absolute;
+            right: 0;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 4px;
+            height: 20px;
+            background: white;
+            border-radius: 4px 0 0 4px;
+        }
+
+        .sidebar-footer {
+            padding-top: 1.5rem;
+            border-top: 1px solid var(--border);
+        }
+
+        .user-mini {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .user-mini img {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 2px solid white;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .user-info h4 {
+            font-size: 0.9rem;
+            font-weight: 600;
+        }
+        
+        .user-info span {
+            font-size: 0.75rem;
+            color: var(--text-light);
+        }
+
+        /* =========================================
+           3. MAIN LAYOUT & HEADER
+           ========================================= */
+        .main-content {
+            flex: 1;
+            margin-left: var(--sidebar-width);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            position: relative;
+        }
+
+        /* Animated Background blobs */
+        .bg-blob {
+            position: absolute;
+            width: 500px;
+            height: 500px;
+            background: radial-gradient(circle, rgba(59,130,246,0.08) 0%, rgba(255,255,255,0) 70%);
+            border-radius: 50%;
+            z-index: 0;
+            pointer-events: none;
+            animation: floatBlob 10s infinite alternate;
+        }
+        .blob-1 { top: -100px; right: -100px; }
+        .blob-2 { bottom: -100px; left: 200px; animation-delay: 2s; }
+
+        header {
+            height: var(--header-height);
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(12px);
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 2.5rem;
+            position: sticky;
+            top: 0;
+            z-index: 40;
+            animation: slideDown 0.6s ease;
+        }
+
+        .header-left h2 {
+            font-size: 1.5rem;
+            font-weight: 700;
+        }
+
+        .header-right {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .search-bar {
+            position: relative;
+        }
+
+        .search-bar input {
+            padding: 10px 16px 10px 40px;
+            border-radius: var(--radius-full);
+            border: 1px solid var(--border);
+            background: var(--bg-body);
+            width: 250px;
+            font-family: inherit;
+            transition: all var(--anim-fast);
+        }
+
+        .search-bar input:focus {
+            outline: none;
+            border-color: var(--primary);
+            background: white;
+            box-shadow: 0 0 0 3px var(--primary-light);
+            width: 300px;
+        }
+
+        .search-bar i {
+            position: absolute;
+            left: 14px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--text-light);
+        }
+
+        .icon-btn {
+            background: white;
+            border: 1px solid var(--border);
+            width: 42px;
+            height: 42px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--text-secondary);
+            cursor: pointer;
+            transition: all var(--anim-fast);
+            position: relative;
+        }
+
+        .icon-btn:hover {
+            background: var(--bg-body);
+            color: var(--primary);
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-sm);
+        }
+
+        .badge-dot {
+            position: absolute;
+            top: 3px;
+            right: 3px;
+            width: 10px;
+            height: 10px;
+            background: var(--danger);
+            border-radius: 50%;
+            border: 2px solid white;
+            animation: pulse 2s infinite;
+        }
+
+        /* =========================================
+           4. DASHBOARD CONTENT
+           ========================================= */
+        .dashboard-container {
+            padding: 2.5rem;
+            overflow-y: auto;
+            height: calc(100vh - var(--header-height));
+            position: relative;
+            z-index: 1;
+        }
+
+        /* Stats Grid */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2.5rem;
+        }
+
+        .stat-card {
+            background: var(--bg-card);
+            padding: 1.5rem;
+            border-radius: var(--radius-lg);
+            box-shadow: var(--shadow-sm);
+            border: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            gap: 1.5rem;
+            transition: all var(--anim-smooth);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
+            box-shadow: var(--shadow-lg);
+            border-color: var(--primary-light);
+        }
+
+        .stat-icon {
+            width: 56px;
+            height: 56px;
+            border-radius: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            flex-shrink: 0;
+        }
+
+        .stat-info h3 {
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+            font-weight: 500;
+            margin-bottom: 4px;
+        }
+
+        .stat-info p {
+            font-size: 1.75rem;
+            font-weight: 800;
+            color: var(--text-primary);
+        }
+
+        .stat-trend {
+            font-size: 0.8rem;
+            margin-top: 4px;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        /* Color variations for cards */
+        .card-blue .stat-icon { background: var(--primary-light); color: var(--primary); }
+        .card-orange .stat-icon { background: var(--accent-light); color: var(--accent); }
+        .card-green .stat-icon { background: var(--success-light); color: var(--success); }
+        .card-red .stat-icon { background: var(--danger-light); color: var(--danger); }
+
+        /* =========================================
+           5. CATEGORY FILTERS & TABS
+           ========================================= */
+        .controls-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+
+        .filter-tabs {
+            background: white;
+            padding: 6px;
+            border-radius: var(--radius-full);
+            border: 1px solid var(--border);
+            display: flex;
+            gap: 6px;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .tab-btn {
+            border: none;
+            background: transparent;
+            padding: 10px 24px;
+            border-radius: var(--radius-full);
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: var(--text-secondary);
+            cursor: pointer;
+            transition: all var(--anim-fast);
+        }
+
+        .tab-btn:hover {
+            color: var(--text-primary);
+            background: var(--bg-body);
+        }
+
+        .tab-btn.active {
+            background: var(--text-primary);
+            color: white;
+            box-shadow: 0 2px 8px rgba(30, 41, 59, 0.2);
+        }
+
+        .action-btn {
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: var(--radius-md);
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: all var(--anim-fast);
+            box-shadow: var(--shadow-glow);
+        }
+
+        .action-btn:hover {
+            background: var(--primary-dark);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(59, 130, 246, 0.4);
+        }
+
+        /* =========================================
+           6. WORKER LIST / ATTENDANCE GRID
+           ========================================= */
+        .grid-layout {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 2rem;
+            align-items: start;
+        }
+
+        .attendance-section {
+            background: white;
+            border-radius: var(--radius-lg);
+            border: 1px solid var(--border);
+            box-shadow: var(--shadow-sm);
+            overflow: hidden;
+        }
+
+        .section-header {
+            padding: 1.5rem;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .worker-list {
+            padding: 0;
+        }
+
+        .worker-row {
+            display: flex;
+            align-items: center;
+            padding: 1.25rem 1.5rem;
+            border-bottom: 1px solid var(--bg-body);
+            transition: background var(--anim-fast);
+            animation: fadeInUp 0.5s ease forwards;
+            opacity: 0;
+        }
+
+        .worker-row:last-child {
+            border-bottom: none;
+        }
+
+        .worker-row:hover {
+            background: #f8fafc;
+        }
+
+        .col-avatar {
+            width: 50px;
+            margin-right: 1rem;
+            position: relative;
+        }
+
+        .avatar {
+            width: 45px;
+            height: 45px;
+            border-radius: 12px;
+            object-fit: cover;
+        }
+
+        .status-dot {
+            position: absolute;
+            bottom: -2px;
+            right: -2px;
+            width: 14px;
+            height: 14px;
+            border-radius: 50%;
+            border: 2px solid white;
+        }
+
+        .col-info {
+            flex: 1;
+        }
+
+        .worker-name {
+            font-weight: 600;
+            color: var(--text-primary);
+            display: block;
+        }
+
+        .worker-role {
+            font-size: 0.8rem;
+            color: var(--text-light);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .role-badge {
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 0.7rem;
+            font-weight: 700;
+            text-transform: uppercase;
+        }
+
+        .role-manhole { background: #e0f2fe; color: #0369a1; }
+        .role-sewer { background: #ffedd5; color: #c2410c; }
+        .role-supervisor { background: #f3f4f6; color: #4b5563; }
+
+        .col-time {
+            text-align: center;
+            padding: 0 1rem;
+        }
+
+        .time-label {
+            font-size: 0.7rem;
+            color: var(--text-light);
+            display: block;
+        }
+
+        .time-val {
+            font-weight: 600;
+            font-family: monospace;
+            font-size: 1rem;
+        }
+
+        .col-status {
+            text-align: right;
+        }
+
+        .toggle-switch {
+            position: relative;
+            display: inline-block;
+            width: 48px;
+            height: 26px;
+        }
+
+        .toggle-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #ccc;
+            transition: .4s;
+            border-radius: 34px;
+        }
+
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 20px;
+            width: 20px;
+            left: 3px;
+            bottom: 3px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+
+        input:checked + .slider {
+            background-color: var(--success);
+        }
+
+        input:checked + .slider:before {
+            transform: translateX(22px);
+        }
+
+        /* =========================================
+           7. LIVE SAFETY FEED & MAP
+           ========================================= */
+        .side-panel {
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+
+        .safety-card {
+            background: white;
+            border-radius: var(--radius-lg);
+            border: 1px solid var(--border);
+            box-shadow: var(--shadow-sm);
+            padding: 1.5rem;
+        }
+
+        .camera-feed {
+            position: relative;
+            width: 100%;
+            height: 200px;
+            background: #000;
+            border-radius: var(--radius-md);
+            overflow: hidden;
+            margin-bottom: 1rem;
+        }
+
+        .camera-feed img, .camera-feed video {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            opacity: 0.7;
+        }
+
+        .live-overlay {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            background: rgba(239, 68, 68, 0.9);
+            color: white;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 0.7rem;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            animation: pulseRed 1.5s infinite;
+        }
+
+        .location-tag {
+            position: absolute;
+            bottom: 10px;
+            right: 10px;
+            background: rgba(0,0,0,0.6);
+            color: white;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 0.7rem;
+        }
+
+        .vitals-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .vital-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-bottom: 8px;
+            border-bottom: 1px solid var(--bg-body);
+        }
+
+        .vital-label {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .vital-value {
+            font-weight: 700;
+            color: var(--text-primary);
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 6px;
+            background: var(--bg-body);
+            border-radius: 3px;
+            margin-top: 6px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: var(--primary);
+            border-radius: 3px;
+            width: 50%;
+            transition: width 1s linear;
+        }
+
+        /* =========================================
+           8. ANIMATIONS
+           ========================================= */
+        @keyframes fadeInDown {
+            from { opacity: 0; transform: translateY(-20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes slideDown {
+            from { transform: translateY(-100%); }
+            to { transform: translateY(0); }
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7); }
+            70% { transform: scale(1); box-shadow: 0 0 0 6px rgba(239, 68, 68, 0); }
+            100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
+        }
+
+        @keyframes pulseRed {
+            0% { opacity: 1; }
+            50% { opacity: 0.5; }
+            100% { opacity: 1; }
+        }
+
+        @keyframes floatBlob {
+            0% { transform: translate(0, 0); }
+            100% { transform: translate(30px, 50px); }
+        }
+
+        /* Toast Notification */
+        .toast-container {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            z-index: 100;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .toast {
+            background: white;
+            padding: 16px 20px;
+            border-radius: var(--radius-md);
+            box-shadow: var(--shadow-lg);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            min-width: 300px;
+            border-left: 4px solid var(--primary);
+            animation: slideInRight 0.4s ease forwards;
+            transform: translateX(100%);
+        }
+
+        .toast.success { border-color: var(--success); }
+        .toast.warning { border-color: var(--accent); }
+        .toast i { font-size: 1.2rem; }
+        .toast.success i { color: var(--success); }
+        .toast.warning i { color: var(--accent); }
+
+        @keyframes slideInRight {
+            to { transform: translateX(0); }
+        }
+
+        @media (max-width: 1200px) {
+            .grid-layout { grid-template-columns: 1fr; }
+            .sidebar { transform: translateX(-100%); width: 0; padding: 0; border: none; }
+            .main-content { margin-left: 0; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- BACKGROUND DECORATION -->
+    <div class="bg-blob blob-1"></div>
+    <div class="bg-blob blob-2"></div>
+
+    <!-- SIDEBAR -->
+    <nav class="sidebar">
+        <div class="brand">
+            <div class="brand-logo"><i class="fa-solid fa-helmet-safety"></i></div>
+            <div class="brand-text">
+                <h1>SaniSafe</h1>
+                <p>Sanitation Guard</p>
+            </div>
+        </div>
+
+        <ul class="nav-menu">
+            <li class="nav-item">
+                <a href="#" class="nav-link active">
+                    <i class="fa-solid fa-chart-pie"></i>
+                    <span>Dashboard</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="#" class="nav-link">
+                    <i class="fa-solid fa-users"></i>
+                    <span>Attendance</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="#" class="nav-link">
+                    <i class="fa-solid fa-calendar-check"></i>
+                    <span>Shift Mgmt</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="#" class="nav-link">
+                    <i class="fa-solid fa-video"></i>
+                    <span>Live Monitor</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="#" class="nav-link">
+                    <i class="fa-solid fa-triangle-exclamation"></i>
+                    <span>SOS Alerts</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="#" class="nav-link">
+                    <i class="fa-solid fa-gear"></i>
+                    <span>Settings</span>
+                </a>
+            </li>
+        </ul>
+
+        <div class="sidebar-footer">
+            <div class="user-mini">
+                <img src="https://picsum.photos/seed/admin/100/100" alt="Admin">
+                <div class="user-info">
+                    <h4>Alex Morgan</h4>
+                    <span>City Supervisor</span>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- MAIN CONTENT -->
+    <main class="main-content">
+        
+        <!-- HEADER -->
+        <header>
+            <div class="header-left">
+                <h2 id="page-title">Shift Overview</h2>
+            </div>
+            <div class="header-right">
+                <div class="search-bar">
+                    <i class="fa-solid fa-magnifying-glass"></i>
+                    <input type="text" placeholder="Search worker, ID or zone...">
+                </div>
+                <button class="icon-btn">
+                    <i class="fa-regular fa-bell"></i>
+                    <div class="badge-dot"></div>
+                </button>
+                <button class="icon-btn">
+                    <i class="fa-solid fa-expand"></i>
+                </button>
+            </div>
+        </header>
+
+        <!-- DASHBOARD CONTAINER -->
+        <div class="dashboard-container">
+            
+            <!-- STATS ROW -->
+            <div class="stats-grid">
+                <div class="stat-card card-blue">
+                    <div class="stat-icon"><i class="fa-solid fa-user-check"></i></div>
+                    <div class="stat-info">
+                        <h3>On Duty</h3>
+                        <p class="counter" data-target="124">0</p>
+                        <div class="stat-trend" style="color: var(--success);">
+                            <i class="fa-solid fa-arrow-up"></i> 12% vs yesterday
+                        </div>
+                    </div>
+                </div>
+                <div class="stat-card card-orange">
+                    <div class="stat-icon"><i class="fa-solid fa-stopwatch"></i></div>
+                    <div class="stat-info">
+                        <h3>Avg. Shift Hrs</h3>
+                        <p>6.4h</p>
+                        <div class="stat-trend" style="color: var(--text-light);">
+                            Stable
+                        </div>
+                    </div>
+                </div>
+                <div class="stat-card card-green">
+                    <div class="stat-icon"><i class="fa-solid fa-vest"></i></div>
+                    <div class="stat-info">
+                        <h3>S Gear Status</h3>
+                        <p>98%</p>
+                        <div class="stat-trend" style="color: var(--success);">
+                            Optimal
+                        </div>
+                    </div>
+                </div>
+                <div class="stat-card card-red">
+                    <div class="stat-icon"><i class="fa-solid fa-triangle-exclamation"></i></div>
+                    <div class="stat-info">
+                        <h3>Active Alerts</h3>
+                        <p class="counter" data-target="3">0</p>
+                        <div class="stat-trend" style="color: var(--danger);">
+                            Action Required
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- FILTERS -->
+            <div class="controls-bar">
+                <div class="filter-tabs">
+                    <button class="tab-btn active" onclick="filterWorkers('all', this)">All Workers</button>
+                    <button class="tab-btn" onclick="filterWorkers('Manhole', this)">Manhole Team</button>
+                    <button class="tab-btn" onclick="filterWorkers('Sewer', this)">Sewer Cleaners</button>
+                    <button class="tab-btn" onclick="filterWorkers('Supervisor', this)">Supervisors</button>
+                </div>
+                <button class="action-btn" onclick="exportReport()">
+                    <i class="fa-solid fa-download"></i> Export Report
+                </button>
+            </div>
+
+            <!-- MAIN GRID -->
+            <div class="grid-layout">
+                
+                <!-- WORKER LIST -->
+                <div class="attendance-section">
+                    <div class="section-header">
+                        <h3>Live Attendance Feed</h3>
+                        <span style="font-size: 0.85rem; color: var(--text-light);">
+                            <i class="fa-solid fa-circle-notch fa-spin"></i> Live Sync
+                        </span>
+                    </div>
+                    <div class="worker-list" id="workerListContainer">
+                        <!-- JS Will Inject Rows Here -->
+                    </div>
+                </div>
+
+                <!-- SAFETY FEED SIDEBAR -->
+                <div class="side-panel">
+                    
+                    <!-- Camera Feed -->
+                    <div class="safety-card">
+                        <div class="section-header" style="padding: 0 0 1rem 0; border: none;">
+                            <h3>Hazard Zone Cam</h3>
+                        </div>
+                        <div class="camera-feed">
+                            <!-- Simulated Video Feed with Image + Overlay -->
+                            <img src="https://picsum.photos/seed/sewer/400/250" alt="CCTV Feed">
+                            <div class="live-overlay">
+                                <div style="width: 8px; height: 8px; background: white; border-radius: 50%;"></div> LIVE
+                            </div>
+                            <div class="location-tag"><i class="fa-solid fa-location-dot"></i> Sector 4 - Main Drain</div>
+                        </div>
+                        <div class="vitals-list">
+                            <div class="vital-item">
+                                <span class="vital-label"><i class="fa-solid fa-wind"></i> Methane Levels</span>
+                                <span class="vital-value" style="color: var(--success);">12 ppm</span>
+                            </div>
+                            <div class="progress-bar">
+                                <div class="progress-fill" style="width: 12%; background: var(--success);"></div>
+                            </div>
+                            <div class="vital-item" style="margin-top: 10px;">
+                                <span class="vital-label"><i class="fa-solid fa-temperature-half"></i> Ambient Temp</span>
+                                <span class="vital-value" style="color: var(--accent);">28°C</span>
+                            </div>
+                            <div class="progress-bar">
+                                <div class="progress-fill" style="width: 45%; background: var(--accent);"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Team Performance -->
+                    <div class="safety-card">
+                        <div class="section-header" style="padding: 0 0 1rem 0; border: none;">
+                            <h3>Shift Efficiency</h3>
+                        </div>
+                        <!-- Simple CSS Bar Chart -->
+                        <div style="display: flex; align-items: flex-end; justify-content: space-between; height: 120px; padding-top: 10px;">
+                            <div style="text-align: center; width: 20%;">
+                                <div style="height: 60px; background: var(--primary-light); border-radius: 4px; margin: 0 auto; position: relative;">
+                                    <div style="position: absolute; bottom: 0; width: 100%; height: 70%; background: var(--primary); border-radius: 4px;"></div>
+                                </div>
+                                <span style="font-size: 0.7rem; color: var(--text-light); display: block; margin-top: 6px;">Mon</span>
+                            </div>
+                            <div style="text-align: center; width: 20%;">
+                                <div style="height: 60px; background: var(--primary-light); border-radius: 4px; margin: 0 auto; position: relative;">
+                                    <div style="position: absolute; bottom: 0; width: 100%; height: 85%; background: var(--primary); border-radius: 4px;"></div>
+                                </div>
+                                <span style="font-size: 0.7rem; color: var(--text-light); display: block; margin-top: 6px;">Tue</span>
+                            </div>
+                            <div style="text-align: center; width: 20%;">
+                                <div style="height: 60px; background: var(--primary-light); border-radius: 4px; margin: 0 auto; position: relative;">
+                                    <div style="position: absolute; bottom: 0; width: 100%; height: 50%; background: var(--primary); border-radius: 4px;"></div>
+                                </div>
+                                <span style="font-size: 0.7rem; color: var(--text-light); display: block; margin-top: 6px;">Wed</span>
+                            </div>
+                            <div style="text-align: center; width: 20%;">
+                                <div style="height: 60px; background: var(--primary-light); border-radius: 4px; margin: 0 auto; position: relative;">
+                                    <div style="position: absolute; bottom: 0; width: 100%; height: 92%; background: var(--success); border-radius: 4px; box-shadow: 0 0 10px rgba(16, 185, 129, 0.4);"></div>
+                                </div>
+                                <span style="font-size: 0.7rem; color: var(--text-primary); font-weight: bold; display: block; margin-top: 6px;">Thu</span>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+        </div>
+    </main>
+
+    <!-- TOAST CONTAINER -->
+    <div class="toast-container" id="toastContainer"></div>
+
+    <script>
+        // =========================================
+        // DATA MODELS
+        // =========================================
+        
+        const workersData = [
+            { id: 101, name: "Robert Fox", role: "Manhole Worker", category: "Manhole", img: "https://picsum.photos/seed/robert/100/100", status: true, checkIn: "08:00 AM" },
+            { id: 102, name: "Arlene McCoy", role: "Sewer Specialist", category: "Sewer", img: "https://picsum.photos/seed/arlene/100/100", status: true, checkIn: "07:45 AM" },
+            { id: 103, name: "Wade Warren", role: "Supervisor", category: "Supervisor", img: "https://picsum.photos/seed/wade/100/100", status: false, checkIn: "--:--" },
+            { id: 104, name: "Esther Howard", role: "Manhole Worker", category: "Manhole", img: "https://picsum.photos/seed/esther/100/100", status: true, checkIn: "08:15 AM" },
+            { id: 105, name: "Cody Fisher", role: "Sewer Specialist", category: "Sewer", img: "https://picsum.photos/seed/cody/100/100", status: false, checkIn: "--:--" },
+            { id: 106, name: "Brooklyn Simmons", role: "Manhole Worker", category: "Manhole", img: "https://picsum.photos/seed/brooklyn/100/100", status: true, checkIn: "08:05 AM" },
+            { id: 107, name: "Jenny Wilson", role: "Supervisor", category: "Supervisor", img: "https://picsum.photos/seed/jenny/100/100", status: true, checkIn: "07:30 AM" },
+            { id: 108, name: "Kristin Watson", role: "Sewer Specialist", category: "Sewer", img: "https://picsum.photos/seed/kristin/100/100", status: true, checkIn: "09:00 AM" },
+        ];
+
+        // =========================================
+        // DOM ELEMENTS
+        // =========================================
+        const workerListContainer = document.getElementById('workerListContainer');
+        const toastContainer = document.getElementById('toastContainer');
+        const counters = document.querySelectorAll('.counter');
+
+        // =========================================
+        // INITIALIZATION
+        // =========================================
+        document.addEventListener('DOMContentLoaded', () => {
+            renderWorkers('all');
+            animateCounters();
+            startLiveSimulation();
+        });
+
+        // =========================================
+        // RENDER LOGIC
+        // =========================================
+        function renderWorkers(filterCategory) {
+            workerListContainer.innerHTML = '';
+            
+            const filtered = workersData.filter(w => filterCategory === 'all' || w.category === filterCategory);
+
+            filtered.forEach((worker, index) => {
+                const row = document.createElement('div');
+                row.className = 'worker-row';
+                // Stagger animation delay
+                row.style.animationDelay = `${index * 0.05}s`;
+
+                const roleClass = `role-${worker.category.toLowerCase()}`;
+                const statusColor = worker.status ? 'var(--success)' : '#ccc';
+                const statusText = worker.status ? 'Active' : 'Inactive';
+
+                row.innerHTML = `
+                    <div class="col-avatar">
+                        <img src="${worker.img}" alt="${worker.name}" class="avatar">
+                        <div class="status-dot" style="background: ${statusColor}"></div>
+                    </div>
+                    <div class="col-info">
+                        <span class="worker-name">${worker.name}</span>
+                        <span class="worker-role">
+                            <span class="role-badge ${roleClass}">${worker.role}</span>
+                            <span>ID: #${worker.id}</span>
+                        </span>
+                    </div>
+                    <div class="col-time">
+                        <span class="time-label">Check In</span>
+                        <span class="time-val">${worker.checkIn}</span>
+                    </div>
+                    <div class="col-status">
+                        <label class="toggle-switch">
+                            <input type="checkbox" ${worker.status ? 'checked' : ''} onchange="toggleStatus(${worker.id}, this)">
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+                `;
+                workerListContainer.appendChild(row);
+            });
+
+            if(filtered.length === 0) {
+                workerListContainer.innerHTML = `<div style="padding: 2rem; text-align: center; color: var(--text-light);">No workers found in this category.</div>`;
+            }
+        }
+
+        function filterWorkers(category, btnElement) {
+            // UI Toggle
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            btnElement.classList.add('active');
+            
+            // Logic
+            renderWorkers(category);
+        }
+
+        // =========================================
+        // INTERACTION LOGIC
+        // =========================================
+        function toggleStatus(id, checkbox) {
+            const worker = workersData.find(w => w.id === id);
+            const isChecked = checkbox.checked;
+            
+            worker.status = isChecked;
+            worker.checkIn = isChecked ? new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) : "--:--";
+
+            if(isChecked) {
+                showToast(`Success: ${worker.name} checked in.`, 'success');
+                playSound('checkin');
+            } else {
+                showToast(`Alert: ${worker.name} checked out.`, 'warning');
+            }
+
+            // Re-render specific row dot status without full reload to keep animation smooth
+            const row = checkbox.closest('.worker-row');
+            const dot = row.querySelector('.status-dot');
+            dot.style.background = isChecked ? 'var(--success)' : '#ccc';
+        }
+
+        function exportReport() {
+            showToast('Downloading PDF Report...', 'success');
+            setTimeout(() => {
+                showToast('Report Downloaded Successfully', 'success');
+            }, 2000);
+        }
+
+        // =========================================
+        // ANIMATION & UTILITIES
+        // =========================================
+        function showToast(message, type = 'success') {
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`;
+            const icon = type === 'success' ? 'fa-circle-check' : 'fa-circle-info';
+            
+            toast.innerHTML = `
+                <i class="fa-solid ${icon}"></i>
+                <span>${message}</span>
+            `;
+
+            toastContainer.appendChild(toast);
+
+            // Remove after 3 seconds
+            setTimeout(() => {
+                toast.style.animation = 'slideInRight 0.4s ease reverse forwards';
+                setTimeout(() => toast.remove(), 400);
+            }, 3000);
+        }
+
+        function animateCounters() {
+            counters.forEach(counter => {
+                const target = +counter.getAttribute('data-target');
+                const increment = target / 50; 
+                
+                const updateCount = () => {
+                    const count = +counter.innerText;
+                    if (count < target) {
+                        counter.innerText = Math.ceil(count + increment);
+                        setTimeout(updateCount, 30);
+                    } else {
+                        counter.innerText = target;
+                    }
+                };
+                updateCount();
+            });
+        }
+
+        function playSound(type) {
+            
+        }
+
+        function startLiveSimulation() {
+     
+            setInterval(() => {
+                const vitals = document.querySelectorAll('.vital-value');
+                if(vitals.length > 0) {
+               
+                    const methane = Math.floor(Math.random() * (18 - 8) + 8);
+                    vitals[0].innerText = `${methane} ppm`;
+                    
+                    const fill = vitals[0].parentElement.nextElementSibling.querySelector('.progress-fill');
+                    fill.style.width = `${methane * 2}%`;
+                    if(methane > 15) {
+                        fill.style.background = 'var(--danger)';
+                        vitals[0].style.color = 'var(--danger)';
+                    } else {
+                        fill.style.background = 'var(--success)';
+                        vitals[0].style.color = 'var(--success)';
+                    }
+
+                    const temp = (Math.random() * (30 - 26) + 26).toFixed(1);
+                    vitals[1].innerText = `${temp}°C`;
+                }
+            }, 3000);
+        }
+
+    </script>
+</body>
+</html>

@@ -1,0 +1,1599 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SanitationGuard AI | Advanced IoT Worker Safety</title>
+    
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+    
+    <!-- Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <style>
+        /* =========================================
+           1. CSS VARIABLES & RESET
+           ========================================= */
+        :root {
+            --primary: #0f172a;       /* Dark Slate */
+            --primary-light: #334155;
+            --accent-blue: #3b82f6;   /* Tech Blue */
+            --accent-cyan: #06b6d4;   /* IoT Cyan */
+            --accent-green: #10b981;  /* Safe Green */
+            --accent-red: #ef4444;    /* Alert Red */
+            --accent-orange: #f59e0b; /* Warning */
+            --bg-white: #ffffff;
+            --bg-off-white: #f8fafc;
+            --bg-glass: rgba(255, 255, 255, 0.85);
+            --border-color: #e2e8f0;
+            --text-main: #1e293b;
+            --text-muted: #64748b;
+            
+            --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+            --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+            --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+            --shadow-glow: 0 0 20px rgba(59, 130, 246, 0.15);
+            
+            --transition-fast: 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            --transition-smooth: 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            
+            --container-width: 1280px;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-white);
+            color: var(--text-main);
+            line-height: 1.6;
+            overflow-x: hidden;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        h1, h2, h3, h4, h5, h6 {
+            font-weight: 700;
+            letter-spacing: -0.025em;
+            color: var(--primary);
+        }
+
+        a {
+            text-decoration: none;
+            color: inherit;
+            transition: var(--transition-fast);
+        }
+
+        ul {
+            list-style: none;
+        }
+
+        button {
+            cursor: pointer;
+            font-family: inherit;
+            border: none;
+            outline: none;
+        }
+
+        /* Utility Classes */
+        .container {
+            max-width: var(--container-width);
+            margin: 0 auto;
+            padding: 0 24px;
+        }
+
+        .text-gradient {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--accent-blue) 100%);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .flex { display: flex; }
+        .flex-col { flex-direction: column; }
+        .items-center { align-items: center; }
+        .justify-between { justify-content: space-between; }
+        .justify-center { justify-content: center; }
+        .gap-2 { gap: 0.5rem; }
+        .gap-4 { gap: 1rem; }
+        .gap-8 { gap: 2rem; }
+
+        .grid { display: grid; }
+        .grid-cols-1 { grid-template-columns: repeat(1, 1fr); }
+        .grid-cols-2 { grid-template-columns: repeat(2, 1fr); }
+        .grid-cols-3 { grid-template-columns: repeat(3, 1fr); }
+        .grid-cols-4 { grid-template-columns: repeat(4, 1fr); }
+
+        /* =========================================
+           2. ANIMATIONS & KEYFRAMES
+           ========================================= */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes float {
+            0% { transform: translateY(0px); }
+            50% { transform: translateY(-15px); }
+            100% { transform: translateY(0px); }
+        }
+
+        @keyframes pulse-ring {
+            0% { transform: scale(0.8); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7); }
+            70% { transform: scale(1); box-shadow: 0 0 0 10px rgba(16, 185, 129, 0); }
+            100% { transform: scale(0.8); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
+        }
+
+        @keyframes scanline {
+            0% { top: -100%; }
+            100% { top: 100%; }
+        }
+
+        @keyframes slideInLeft {
+            from { opacity: 0; transform: translateX(-30px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+
+        @keyframes typing {
+            from { width: 0 }
+            to { width: 100% }
+        }
+
+        /* Reveal on Scroll */
+        .reveal {
+            opacity: 0;
+            transform: translateY(30px);
+            transition: all 0.8s cubic-bezier(0.5, 0, 0, 1);
+        }
+        .reveal.active {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        /* =========================================
+           3. NAVIGATION & HEADER
+           ========================================= */
+        .navbar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 80px;
+            background: var(--bg-glass);
+            -webkit-backdrop-filter: blur(12px);
+            backdrop-filter: blur(12px);
+            border-bottom: 1px solid var(--border-color);
+            z-index: 1000;
+            transition: all 0.3s ease;
+        }
+
+        .navbar-content {
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 1.5rem;
+            font-weight: 800;
+            color: var(--primary);
+        }
+
+        .logo i {
+            color: var(--accent-blue);
+            font-size: 1.8rem;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 32px;
+        }
+
+        .nav-link {
+            font-size: 0.95rem;
+            font-weight: 500;
+            color: var(--text-muted);
+            position: relative;
+        }
+
+        .nav-link::after {
+            content: '';
+            position: absolute;
+            bottom: -4px;
+            left: 0;
+            width: 0%;
+            height: 2px;
+            background: var(--accent-blue);
+            transition: width 0.3s ease;
+        }
+
+        .nav-link:hover {
+            color: var(--accent-blue);
+        }
+
+        .nav-link:hover::after {
+            width: 100%;
+        }
+
+        .nav-actions {
+            display: flex;
+            gap: 16px;
+            align-items: center;
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 0.9rem;
+            transition: var(--transition-fast);
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-ghost {
+            background: transparent;
+            color: var(--text-main);
+            border: 1px solid var(--border-color);
+        }
+
+        .btn-ghost:hover {
+            border-color: var(--primary);
+            background: var(--bg-off-white);
+        }
+
+        .btn-primary {
+            background: var(--primary);
+            color: white;
+            box-shadow: var(--shadow-md);
+        }
+
+        .btn-primary:hover {
+            background: var(--accent-blue);
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-glow);
+        }
+
+        /* =========================================
+           4. HERO SECTION
+           ========================================= */
+        .hero {
+            padding-top: 160px;
+            padding-bottom: 100px;
+            background: radial-gradient(circle at top right, rgba(59, 130, 246, 0.05), transparent 40%),
+                        radial-gradient(circle at bottom left, rgba(6, 182, 212, 0.05), transparent 40%);
+            overflow: hidden;
+            position: relative;
+        }
+
+        .hero-grid {
+            display: grid;
+            grid-template-columns: 1.2fr 1fr;
+            gap: 60px;
+            align-items: center;
+        }
+
+        .hero-content h1 {
+            font-size: 4rem;
+            line-height: 1.1;
+            margin-bottom: 24px;
+        }
+
+        .hero-content p {
+            font-size: 1.25rem;
+            color: var(--text-muted);
+            margin-bottom: 40px;
+            max-width: 550px;
+        }
+
+        .hero-stats-row {
+            display: flex;
+            gap: 40px;
+            margin-top: 48px;
+            padding-top: 32px;
+            border-top: 1px solid var(--border-color);
+        }
+
+        .stat-item h4 {
+            font-size: 2rem;
+            color: var(--accent-blue);
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        .stat-item span {
+            font-size: 0.9rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .hero-visual {
+            position: relative;
+            height: 600px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        /* 3D Smart Helmet Simulation (CSS Only) */
+        .helmet-container {
+            width: 400px;
+            height: 400px;
+            position: relative;
+            transform-style: preserve-3d;
+            animation: float 6s ease-in-out infinite;
+        }
+
+        .helmet-circle {
+            position: absolute;
+            border-radius: 50%;
+            border: 1px solid var(--border-color);
+            box-shadow: 0 0 40px rgba(59, 130, 246, 0.1);
+        }
+
+        .hc-1 { width: 100%; height: 100%; border: 2px dashed var(--accent-cyan); opacity: 0.3; animation: spin 20s linear infinite; }
+        .hc-2 { width: 80%; height: 80%; top: 10%; left: 10%; background: linear-gradient(135deg, rgba(255,255,255,0.8), rgba(255,255,255,0)); z-index: 2; }
+        .hc-3 { width: 60%; height: 60%; top: 20%; left: 20%; border: 1px solid var(--accent-blue); z-index: 3; display: flex; align-items: center; justify-content: center; background: white; box-shadow: var(--shadow-lg); }
+
+        .helmet-icon {
+            font-size: 5rem;
+            color: var(--primary);
+            z-index: 4;
+        }
+
+        .floating-card {
+            position: absolute;
+            background: white;
+            padding: 16px;
+            border-radius: 12px;
+            box-shadow: var(--shadow-lg);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            z-index: 10;
+            border: 1px solid var(--border-color);
+            animation: float 4s ease-in-out infinite;
+        }
+
+        .fc-1 { top: 10%; right: -20px; animation-delay: 0s; }
+        .fc-2 { bottom: 15%; left: -20px; animation-delay: 2s; }
+
+        .fc-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 8px;
+            background: var(--bg-off-white);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--accent-blue);
+        }
+
+        .fc-text strong { display: block; font-size: 0.9rem; }
+        .fc-text span { font-size: 0.75rem; color: var(--text-muted); }
+
+        /* =========================================
+           5. LIVE TICKER
+           ========================================= */
+        .live-ticker {
+            background: var(--primary);
+            color: white;
+            padding: 12px 0;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .ticker-content {
+            display: flex;
+            white-space: nowrap;
+            animation: scrollText 30s linear infinite;
+        }
+
+        .ticker-item {
+            display: inline-flex;
+            align-items: center;
+            margin-right: 40px;
+            font-size: 0.9rem;
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        .ticker-dot {
+            width: 8px;
+            height: 8px;
+            background: var(--accent-green);
+            border-radius: 50%;
+            margin-right: 8px;
+            box-shadow: 0 0 10px var(--accent-green);
+        }
+
+        @keyframes scrollText {
+            from { transform: translateX(0); }
+            to { transform: translateX(-50%); }
+        }
+
+        /* =========================================
+           6. FEATURES SECTION (Cards)
+           ========================================= */
+        .section {
+            padding: 100px 0;
+        }
+
+        .section-header {
+            text-align: center;
+            max-width: 700px;
+            margin: 0 auto 60px;
+        }
+
+        .tag {
+            display: inline-block;
+            padding: 6px 16px;
+            background: rgba(59, 130, 246, 0.1);
+            color: var(--accent-blue);
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            margin-bottom: 16px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .section-title {
+            font-size: 2.5rem;
+            margin-bottom: 16px;
+        }
+
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 32px;
+        }
+
+        .feature-card {
+            background: white;
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            padding: 32px;
+            transition: var(--transition-smooth);
+            position: relative;
+            overflow: hidden;
+            z-index: 1;
+        }
+
+        .feature-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, rgba(255,255,255,0) 0%, rgba(59, 130, 246, 0.03) 100%);
+            opacity: 0;
+            transition: opacity 0.4s ease;
+            z-index: -1;
+        }
+
+        .feature-card:hover {
+            transform: translateY(-8px);
+            box-shadow: var(--shadow-lg);
+            border-color: var(--accent-blue);
+        }
+
+        .feature-card:hover::before {
+            opacity: 1;
+        }
+
+        .feature-icon {
+            width: 60px;
+            height: 60px;
+            background: white;
+            border-radius: 12px;
+            box-shadow: var(--shadow-md);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            color: var(--accent-blue);
+            margin-bottom: 24px;
+            transition: transform 0.3s ease;
+        }
+
+        .feature-card:hover .feature-icon {
+            transform: scale(1.1) rotate(5deg);
+            background: var(--accent-blue);
+            color: white;
+        }
+
+        .feature-title {
+            font-size: 1.25rem;
+            margin-bottom: 12px;
+        }
+
+        .feature-desc {
+            color: var(--text-muted);
+            font-size: 0.95rem;
+        }
+
+        /* =========================================
+           7. AI DASHBOARD SIMULATION
+           ========================================= */
+        .dashboard-section {
+            background: var(--bg-off-white);
+            position: relative;
+        }
+
+        .dashboard-interface {
+            background: var(--primary);
+            border-radius: 20px;
+            padding: 4px;
+            box-shadow: 0 20px 40px -10px rgba(15, 23, 42, 0.3);
+            overflow: hidden;
+        }
+
+        .dash-header {
+            background: rgba(255,255,255,0.05);
+            padding: 12px 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .dash-title {
+            color: white;
+            font-size: 0.9rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            background: var(--accent-green);
+            border-radius: 50%;
+            box-shadow: 0 0 8px var(--accent-green);
+        }
+
+        .dash-controls span {
+            color: rgba(255,255,255,0.4);
+            margin-left: 16px;
+            cursor: pointer;
+        }
+        .dash-controls span:hover { color: white; }
+
+        .dash-content {
+            background: var(--bg-white);
+            border-radius: 16px;
+            padding: 24px;
+            display: grid;
+            grid-template-columns: 250px 1fr 300px;
+            gap: 24px;
+            height: 600px;
+        }
+
+        /* Sidebar */
+        .dash-sidebar {
+            border-right: 1px solid var(--border-color);
+            padding-right: 24px;
+        }
+
+        .worker-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .worker-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 10px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .worker-item:hover, .worker-item.active {
+            background: var(--bg-off-white);
+        }
+
+        .avatar {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            object-fit: cover;
+        }
+
+        .worker-info h5 { font-size: 0.9rem; }
+        .worker-info p { font-size: 0.75rem; color: var(--text-muted); }
+
+        /* Main View */
+        .dash-main {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            overflow-y: auto;
+        }
+
+        .chart-container {
+            width: 100%;
+            height: 200px;
+            background: var(--bg-off-white);
+            border-radius: 12px;
+            padding: 16px;
+            position: relative;
+        }
+
+        .chart-title {
+            position: absolute;
+            top: 16px;
+            left: 16px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: var(--text-muted);
+            text-transform: uppercase;
+        }
+
+        /* Vitals Grid */
+        .vitals-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 16px;
+        }
+
+        .vital-card {
+            background: white;
+            border: 1px solid var(--border-color);
+            padding: 16px;
+            border-radius: 12px;
+            text-align: center;
+        }
+
+        .vital-value {
+            font-size: 1.8rem;
+            font-weight: 700;
+            font-family: 'JetBrains Mono', monospace;
+            color: var(--primary);
+            margin: 8px 0;
+        }
+
+        .vital-label {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+        }
+
+        /* AI Insights Panel */
+        .ai-panel {
+            border-left: 1px solid var(--border-color);
+            padding-left: 24px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .ai-header {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 20px;
+            color: var(--accent-blue);
+            font-weight: 600;
+        }
+
+        .log-container {
+            flex: 1;
+            background: #0f172a;
+            border-radius: 8px;
+            padding: 12px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.75rem;
+            color: #10b981;
+            overflow-y: hidden;
+            position: relative;
+        }
+        
+        .log-content {
+            position: absolute;
+            bottom: 0;
+            left: 12px;
+            width: calc(100% - 24px);
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .log-entry { opacity: 0.8; }
+        .log-entry span { color: #64748b; margin-right: 8px; }
+
+        /* =========================================
+           8. IOT DEVICES (Showcase)
+           ========================================= */
+        .device-showcase {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 40px;
+            align-items: center;
+            margin-bottom: 80px;
+        }
+        
+        .device-showcase.reverse { direction: rtl; }
+        .device-showcase.reverse .device-text { direction: ltr; }
+
+        .device-img-wrapper {
+            position: relative;
+            border-radius: 20px;
+            overflow: hidden;
+            box-shadow: var(--shadow-lg);
+        }
+
+        .device-img {
+            width: 100%;
+            height: auto;
+            display: block;
+            transition: transform 0.5s ease;
+        }
+
+        .device-img-wrapper:hover .device-img {
+            transform: scale(1.03);
+        }
+
+        .device-overlay {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            background: linear-gradient(to top, rgba(0,0,0,0.8), transparent);
+            padding: 40px 24px 24px;
+            color: white;
+        }
+
+        .device-text h3 { font-size: 2rem; margin-bottom: 16px; }
+        .device-text p { color: var(--text-muted); margin-bottom: 24px; font-size: 1.1rem; }
+
+        .specs-list {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+        }
+
+        .spec-item {
+            background: var(--bg-off-white);
+            padding: 12px;
+            border-radius: 8px;
+        }
+
+        .spec-item strong { display: block; font-size: 0.9rem; color: var(--primary); }
+        .spec-item span { font-size: 0.8rem; color: var(--text-muted); }
+
+        /* =========================================
+           9. AI CHATBOT WIDGET
+           ========================================= */
+        .chatbot-toggle {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            width: 60px;
+            height: 60px;
+            background: var(--accent-blue);
+            border-radius: 50%;
+            box-shadow: var(--shadow-lg);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 1.5rem;
+            cursor: pointer;
+            z-index: 1001;
+            transition: var(--transition-smooth);
+        }
+
+        .chatbot-toggle:hover {
+            transform: scale(1.1);
+            background: var(--primary);
+        }
+
+        .chatbot-window {
+            position: fixed;
+            bottom: 100px;
+            right: 30px;
+            width: 350px;
+            height: 500px;
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.2);
+            z-index: 1002;
+            display: none;
+            flex-direction: column;
+            overflow: hidden;
+            border: 1px solid var(--border-color);
+            transform-origin: bottom right;
+            animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        @keyframes popIn {
+            from { opacity: 0; transform: scale(0.8); }
+            to { opacity: 1; transform: scale(1); }
+        }
+
+        .chat-header {
+            background: var(--primary);
+            color: white;
+            padding: 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .chat-body {
+            flex: 1;
+            padding: 16px;
+            overflow-y: auto;
+            background: var(--bg-off-white);
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .message {
+            max-width: 80%;
+            padding: 10px 14px;
+            border-radius: 12px;
+            font-size: 0.9rem;
+            line-height: 1.4;
+        }
+
+        .msg-bot {
+            background: white;
+            border: 1px solid var(--border-color);
+            color: var(--text-main);
+            align-self: flex-start;
+            border-bottom-left-radius: 2px;
+        }
+
+        .msg-user {
+            background: var(--accent-blue);
+            color: white;
+            align-self: flex-end;
+            border-bottom-right-radius: 2px;
+        }
+
+        .chat-input-area {
+            padding: 12px;
+            background: white;
+            border-top: 1px solid var(--border-color);
+            display: flex;
+            gap: 8px;
+        }
+
+        .chat-input {
+            flex: 1;
+            border: 1px solid var(--border-color);
+            border-radius: 20px;
+            padding: 8px 16px;
+            font-family: inherit;
+        }
+
+        .chat-send {
+            background: var(--accent-blue);
+            color: white;
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* =========================================
+           10. FOOTER
+           ========================================= */
+        footer {
+            background: var(--primary);
+            color: white;
+            padding: 80px 0 32px;
+            margin-top: 100px;
+        }
+
+        .footer-grid {
+            display: grid;
+            grid-template-columns: 2fr 1fr 1fr 1fr;
+            gap: 40px;
+            margin-bottom: 60px;
+        }
+
+        .footer-brand h2 { color: white; margin-bottom: 16px; }
+        .footer-brand p { color: #94a3b8; max-width: 300px; font-size: 0.9rem; }
+
+        .footer-col h4 { color: white; margin-bottom: 24px; font-size: 1.1rem; }
+        .footer-col ul li { margin-bottom: 12px; }
+        .footer-col ul li a { color: #94a3b8; font-size: 0.9rem; }
+        .footer-col ul li a:hover { color: white; }
+
+        .footer-bottom {
+            border-top: 1px solid rgba(255,255,255,0.1);
+            padding-top: 32px;
+            display: flex;
+            justify-content: space-between;
+            color: #64748b;
+            font-size: 0.85rem;
+        }
+
+        /* Responsive */
+        @media (max-width: 1024px) {
+            .hero-grid { grid-template-columns: 1fr; text-align: center; }
+            .hero-content p { margin: 0 auto 40px; }
+            .hero-stats-row { justify-content: center; }
+            .hero-visual { height: 400px; }
+            .dash-content { grid-template-columns: 1fr; height: auto; }
+            .dash-sidebar, .ai-panel { border: none; height: 300px; }
+            .footer-grid { grid-template-columns: 1fr 1fr; }
+        }
+
+        @media (max-width: 768px) {
+            .nav-links { display: none; }
+            .hero-content h1 { font-size: 2.5rem; }
+            .grid-cols-2, .grid-cols-3, .grid-cols-4 { grid-template-columns: 1fr; }
+            .device-showcase, .device-showcase.reverse { grid-template-columns: 1fr; text-align: center; }
+            .footer-grid { grid-template-columns: 1fr; }
+        }
+
+        /* Canvas */
+        #iotChart {
+            width: 100%;
+            height: 100%;
+        }
+
+        /* Toast Notification */
+        .toast-container {
+            position: fixed;
+            top: 100px;
+            right: 24px;
+            z-index: 2000;
+        }
+        
+        .toast {
+            background: white;
+            padding: 16px 24px;
+            border-radius: 8px;
+            box-shadow: var(--shadow-lg);
+            margin-bottom: 12px;
+            border-left: 4px solid var(--accent-green);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            animation: slideInLeft 0.3s ease;
+            min-width: 300px;
+        }
+
+        .toast.alert { border-left-color: var(--accent-red); }
+        .toast-title { font-weight: 600; font-size: 0.9rem; }
+        .toast-msg { font-size: 0.8rem; color: var(--text-muted); }
+
+    </style>
+</head>
+<body>
+
+    <!-- Navigation -->
+    <nav class="navbar" id="navbar">
+        <div class="container navbar-content">
+            <a href="#" class="logo">
+                <i class="fa-solid fa-shield-halved"></i>
+                SanitationGuard AI
+            </a>
+            <div class="nav-links">
+                <a href="#features" class="nav-link">Features</a>
+                <a href="#dashboard" class="nav-link">Live Dashboard</a>
+                <a href="#devices" class="nav-link">IoT Devices</a>
+                <a href="#ai" class="nav-link">AI Analytics</a>
+            </div>
+            <div class="nav-actions">
+
+                <a href="/login" class="btn btn-ghost">Login</a>
+                <button class="btn btn-primary">Get Started</button>
+            </div>
+        </div>
+    </nav>
+    <header class="hero">
+        <div class="container hero-grid">
+            <div class="hero-content reveal">
+                <span class="tag">AI-Powered Safety System v2.0</span>
+                <h1>Next-Gen Safety for <br><span class="text-gradient">Sanitation Workers</span></h1>
+                <p>Advanced IoT ecosystem connecting smart helmets, environmental sensors, and predictive AI to ensure zero casualties and real-time assistance.</p>
+                <div class="flex gap-4">
+                    <button class="btn btn-primary">Deploy System</button>
+                    <button class="btn btn-ghost"><i class="fa-solid fa-play"></i> Watch Demo</button>
+                </div>
+                <div class="hero-stats-row">
+                    <div class="stat-item">
+                        <h4 id="stat-workers">1,240</h4>
+                        <span>Workers Protected</span>
+                    </div>
+                    <div class="stat-item">
+                        <h4 id="stat-sensors">850</h4>
+                        <span>Active Sensors</span>
+                    </div>
+                    <div class="stat-item">
+                        <h4 id="stat-incidents">99.9%</h4>
+                        <span>Incident Reduction</span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="hero-visual reveal">
+                <div class="helmet-container">
+                    <div class="helmet-circle hc-1"></div>
+                    <div class="helmet-circle hc-2"></div>
+                    <div class="helmet-circle hc-3">
+                        <i class="fa-solid fa-helmet-safety helmet-icon"></i>
+                    </div>
+                    
+                    <!-- Floating HUD Cards -->
+                    <div class="floating-card fc-1">
+                        <div class="fc-icon"><i class="fa-solid fa-wifi"></i></div>
+                        <div class="fc-text">
+                            <strong>IoT Connected</strong>
+                            <span>Signal: 98% Strength</span>
+                        </div>
+                    </div>
+                    <div class="floating-card fc-2">
+                        <div class="fc-icon" style="color: var(--accent-green);"><i class="fa-solid fa-heart-pulse"></i></div>
+                        <div class="fc-text">
+                            <strong>Vitals Normal</strong>
+                            <span>78 BPM Avg</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Live Ticker -->
+    <div class="live-ticker">
+        <div class="ticker-content" id="ticker-content">
+            <!-- JS will populate duplicates -->
+            <div class="ticker-item"><span class="ticker-dot"></span> Zone A: Oxygen Normal (21%)</div>
+            <div class="ticker-item"><span class="ticker-dot"></span> Worker ID #492: Active</div>
+            <div class="ticker-item"><span class="ticker-dot"></span> Gas Sensor #22: Methane 0% (Safe)</div>
+            <div class="ticker-item"><span class="ticker-dot"></span> System Status: Optimal</div>
+            <div class="ticker-item"><span class="ticker-dot"></span> AI Prediction: Low Risk</div>
+        </div>
+    </div>
+
+    <!-- Features Section -->
+    <section id="features" class="section">
+        <div class="container">
+            <div class="section-header reveal">
+                <span class="tag">Core Features</span>
+                <h2 class="section-title">Integrated Safety Ecosystem</h2>
+                <p>Combining hardware durability with software intelligence to create a protective cocoon for every worker.</p>
+            </div>
+
+            <div class="features-grid">
+                <!-- Card 1 -->
+                <div class="feature-card reveal">
+                    <div class="feature-icon">
+                        <i class="fa-solid fa-helmet-safety"></i>
+                    </div>
+                    <h3 class="feature-title">Smart Helmet IoT</h3>
+                    <p class="feature-desc">Embedded sensors detect falls, impacts, and removeable hazards. Equipped with GPS for precise location tracking in underground networks.</p>
+                </div>
+
+                <!-- Card 2 -->
+                <div class="feature-card reveal">
+                    <div class="feature-icon">
+                        <i class="fa-solid fa-lungs"></i>
+                    </div>
+                    <h3 class="feature-title">Toxic Gas Detection</h3>
+                    <p class="feature-desc">Real-time monitoring of H2S, Methane, and CO2 levels. Immediate auditory and visual alerts trigger upon threshold breach.</p>
+                </div>
+
+                <!-- Card 3 -->
+                <div class="feature-card reveal">
+                    <div class="feature-icon">
+                        <i class="fa-solid fa-triangle-exclamation"></i>
+                    </div>
+                    <h3 class="feature-title">Panic SOS Button</h3>
+                    <p class="feature-desc">One-touch physical button on the chest unit sends high-priority distress signals with location coordinates to the central command.</p>
+                </div>
+
+                <!-- Card 4 -->
+                <div class="feature-card reveal">
+                    <div class="feature-icon">
+                        <i class="fa-solid fa-brain"></i>
+                    </div>
+                    <h3 class="feature-title">AI Risk Prediction</h3>
+                    <p class="feature-desc">Machine learning algorithms analyze historical data and weather patterns to predict hazardous zones before entry.</p>
+                </div>
+
+                <!-- Card 5 -->
+                <div class="feature-card reveal">
+                    <div class="feature-icon">
+                        <i class="fa-solid fa-video"></i>
+                    </div>
+                    <h3 class="feature-title">Thermal Vision</h3>
+                    <p class="feature-desc">Low-light and smoke-penetrating cameras integrated into headgear allow navigation in zero-visibility environments.</p>
+                </div>
+
+                <!-- Card 6 -->
+                <div class="feature-card reveal">
+                    <div class="feature-icon">
+                        <i class="fa-solid fa-heart-pulse"></i>
+                    </div>
+                    <h3 class="feature-title">Health Biometrics</h3>
+                    <p class="feature-desc">Continuous monitoring of heart rate and body temperature to prevent heat exhaustion and fatigue-related accidents.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Dashboard Simulation -->
+    <section id="dashboard" class="section dashboard-section">
+        <div class="container">
+            <div class="section-header reveal">
+                <span class="tag">Live Command Center</span>
+                <h2 class="section-title">Real-Time IoT Monitoring</h2>
+                <p>Experience the power of our centralized dashboard. Data updates every 500ms.</p>
+            </div>
+
+            <div class="dashboard-interface reveal">
+                <div class="dash-header">
+                    <div class="dash-title"><i class="fa-solid fa-server"></i> SG-AI Node: Primary_Mumbai_04</div>
+                    <div class="dash-controls">
+                        <span><i class="fa-solid fa-expand"></i></span>
+                        <span><i class="fa-solid fa-gear"></i></span>
+                    </div>
+                </div>
+                <div class="dash-content">
+                    <!-- Sidebar -->
+                    <div class="dash-sidebar">
+                        <h5 style="margin-bottom: 16px; color: var(--text-muted);">Active Units (5)</h5>
+                        <div class="worker-list" id="worker-list">
+                            <!-- Populated by JS -->
+                        </div>
+                    </div>
+
+                    <!-- Main Visuals -->
+                    <div class="dash-main">
+                        <div class="chart-container">
+                            <div class="chart-title">Live Gas Levels (PPM)</div>
+                            <canvas id="iotChart"></canvas>
+                        </div>
+                        <div class="vitals-grid">
+                            <div class="vital-card">
+                                <i class="fa-solid fa-wind" style="color: var(--accent-cyan)"></i>
+                                <div class="vital-value" id="val-gas">12</div>
+                                <div class="vital-label">Gas PPM</div>
+                            </div>
+                            <div class="vital-card">
+                                <i class="fa-solid fa-heart-pulse" style="color: var(--accent-red)"></i>
+                                <div class="vital-value" id="val-bpm">72</div>
+                                <div class="vital-label">Avg BPM</div>
+                            </div>
+                            <div class="vital-card">
+                                <i class="fa-solid fa-temperature-half" style="color: var(--accent-orange)"></i>
+                                <div class="vital-value" id="val-temp">36°C</div>
+                                <div class="vital-label">Temp</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- AI Panel -->
+                    <div class="ai-panel">
+                        <div class="ai-header">
+                            <i class="fa-solid fa-robot"></i> AI Log Stream
+                        </div>
+                        <div class="log-container">
+                            <div class="log-content" id="ai-logs">
+                                <!-- Logs go here -->
+                            </div>
+                        </div>
+                        <div style="margin-top: 16px;">
+                            <button class="btn btn-primary" style="width: 100%; font-size: 0.8rem; justify-content: center;" onclick="triggerEmergencySim()">
+                                <i class="fa-solid fa-triangle-exclamation"></i> Simulate SOS Event
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Devices Showcase -->
+    <section id="devices" class="section">
+        <div class="container">
+            <!-- Device 1 -->
+            <div class="device-showcase reveal">
+                <div class="device-img-wrapper">
+                    <img src="https://picsum.photos/seed/tech1/600/400" alt="Smart Helmet" class="device-img">
+                    <div class="device-overlay">
+                        <div class="tag" style="background: var(--accent-blue); color: white;">Hardware</div>
+                        <h3>Guardian Helmet X1</h3>
+                    </div>
+                </div>
+                <div class="device-text">
+                    <span class="tag">Wearable Tech</span>
+                    <h3>Head-Mounted Intelligence Unit</h3>
+                    <p>The Guardian Helmet X1 isn't just protection; it's a command center on your head. Featuring noise-cancelling comms, AR overlay for pipeline schematics, and impact detection.</p>
+                    <div class="specs-list">
+                        <div class="spec-item">
+                            <strong>IP68 Waterproof</strong>
+                            <span>Dust & Liquid Proof</span>
+                        </div>
+                        <div class="spec-item">
+                            <strong>12hr Battery</strong>
+                            <span>Hot-swappable cells</span>
+                        </div>
+                        <div class="spec-item">
+                            <strong>4G LTE/WiFi</strong>
+                            <span>Always Connected</span>
+                        </div>
+                        <div class="spec-item">
+                            <strong>500g Weight</strong>
+                            <span>Ultra Lightweight</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Device 2 -->
+            <div class="device-showcase reverse reveal">
+                <div class="device-img-wrapper">
+                    <img src="https://picsum.photos/seed/tech2/600/400" alt="Sensor Node" class="device-img">
+                    <div class="device-overlay">
+                        <div class="tag" style="background: var(--accent-cyan); color: white;">Sensor</div>
+                        <h3>Atmosphere Node</h3>
+                    </div>
+                </div>
+                <div class="device-text">
+                    <span class="tag">Environment</span>
+                    <h3>Deployable Environmental Sensors</h3>
+                    <p>Wireless nodes that can be dropped into manholes or sewers to create a temporary mesh network. They relay air quality and structural integrity data back to the surface.</p>
+                    <div class="specs-list">
+                        <div class="spec-item">
+                            <strong>Mesh Network</strong>
+                            <span>2km Range per node</span>
+                        </div>
+                        <div class="spec-item">
+                            <strong>Multi-Gas</strong>
+                            <span>5 Gas detection</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- CTA Section -->
+    <section class="section" style="background: var(--bg-off-white);">
+        <div class="container reveal">
+            <div style="background: var(--primary); border-radius: 24px; padding: 80px 40px; text-align: center; position: relative; overflow: hidden;">
+                <!-- Decorative BG -->
+                <div style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: radial-gradient(circle at 80% 20%, rgba(59, 130, 246, 0.3), transparent);"></div>
+                
+                <div style="position: relative; z-index: 2;">
+                    <h2 style="color: white; font-size: 2.5rem; margin-bottom: 24px;">Ready to upgrade your safety standards?</h2>
+                    <p style="color: #cbd5e1; max-width: 600px; margin: 0 auto 40px; font-size: 1.1rem;">Join hundreds of municipalities using SanitationGuard AI to protect their workforce. Schedule a demo today.</p>
+                    <button class="btn btn-primary" style="background: white; color: var(--primary); padding: 16px 32px; font-size: 1rem;">Get Free Pilot Access</button>
+                </div>
+            </div>
+        </div>
+    </section>
+    <footer>
+        <div class="container">
+            <div class="footer-grid">
+                <div class="footer-brand">
+                    <h2><i class="fa-solid fa-shield-halved"></i> SG-AI</h2>
+                    <p>Empowering sanitation workers with cutting-edge IoT and AI technology. Safety is not just a protocol; it's a promise.</p>
+                    <div style="margin-top: 24px; display: flex; gap: 16px;">
+                        <a href="#" title="Twitter"><i class="fa-brands fa-twitter"></i></a>
+                        <a href="#" title="LinkedIn"><i class="fa-brands fa-linkedin"></i></a>
+                        <a href="#" title="GitHub"><i class="fa-brands fa-github"></i></a>
+                    </div>
+                </div>
+                <div class="footer-col">
+                    <h4>Platform</h4>
+                    <ul>
+                        <li><a href="#">Smart Helmets</a></li>
+                        <li><a href="#">Gas Sensors</a></li>
+                        <li><a href="#">Dashboard</a></li>
+                        <li><a href="#">API Access</a></li>
+                    </ul>
+                </div>
+                <div class="footer-col">
+                    <h4>Company</h4>
+                    <ul>
+                        <li><a href="#">About Us</a></li>
+                        <li><a href="#">Case Studies</a></li>
+                        <li><a href="#">Careers</a></li>
+                        <li><a href="#">Contact</a></li>
+                    </ul>
+                </div>
+                <div class="footer-col">
+                    <h4>Resources</h4>
+                    <ul>
+                        <li><a href="#">Documentation</a></li>
+                        <li><a href="#">Help Center</a></li>
+                        <li><a href="#">Privacy Policy</a></li>
+                        <li><a href="#">Terms of Service</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <span>&copy; 2023 SanitationGuard AI. All rights reserved.</span>
+                <span>Designed for IoT Safety.</span>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Chatbot Widget -->
+    <div class="chatbot-toggle" id="chat-toggle">
+        <i class="fa-solid fa-comment-dots"></i>
+    </div>
+    <div class="chatbot-window" id="chat-window">
+        <div class="chat-header">
+            <span><i class="fa-solid fa-robot"></i> Safety Assistant</span>
+            <i class="fa-solid fa-xmark" style="cursor: pointer;" id="chat-close"></i>
+        </div>
+        <div class="chat-body" id="chat-body">
+            <div class="message msg-bot">
+                Hello! I am the SanitationGuard AI Assistant. How can I help you ensure worker safety today?
+            </div>
+        </div>
+        <div class="chat-input-area">
+            <input type="text" class="chat-input" id="chat-input" placeholder="Ask about sensors, safety...">
+            <button class="chat-send" id="chat-send"><i class="fa-solid fa-paper-plane"></i></button>
+        </div>
+    </div>
+
+    <div class="toast-container" id="toast-container"></div>
+
+    <!-- JavaScript Logic -->
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            
+            /* =========================================
+               1. NAVIGATION SCROLL EFFECT
+               ========================================= */
+            const navbar = document.getElementById('navbar');
+            window.addEventListener('scroll', () => {
+                if (window.scrollY > 50) {
+                    navbar.style.boxShadow = "0 4px 6px -1px rgb(0 0 0 / 0.1)";
+                } else {
+                    navbar.style.boxShadow = "none";
+                }
+            });
+
+            /* =========================================
+               2. SCROLL REVEAL ANIMATION
+               ========================================= */
+            const revealElements = document.querySelectorAll('.reveal');
+            
+            const revealOnScroll = () => {
+                const windowHeight = window.innerHeight;
+                const elementVisible = 150;
+                
+                revealElements.forEach((reveal) => {
+                    const elementTop = reveal.getBoundingClientRect().top;
+                    if (elementTop < windowHeight - elementVisible) {
+                        reveal.classList.add('active');
+                    }
+                });
+            };
+            
+            window.addEventListener('scroll', revealOnScroll);
+            revealOnScroll(); // Trigger once on load
+
+            /* =========================================
+               3. TICKER DUPLICATION FOR INFINITE SCROLL
+               ========================================= */
+            const tickerContent = document.getElementById('ticker-content');
+            // Clone content 4 times to ensure smooth infinite loop
+            const originalContent = tickerContent.innerHTML;
+            tickerContent.innerHTML = originalContent + originalContent + originalContent + originalContent;
+
+            /* =========================================
+               4. DASHBOARD LOGIC (SIMULATION)
+               ========================================= */
+            // Mock Worker Data
+            const workers = [
+                { id: 1, name: "Rajesh Kumar", status: "Active", hr: 78, temp: 36 },
+                { id: 2, name: "Amit Singh", status: "Active", hr: 82, temp: 37 },
+                { id: 3, name: "Suresh P.", status: "Warning", hr: 110, temp: 38 }, // Elevated stats
+                { id: 4, name: "David M.", status: "Active", hr: 75, temp: 36 },
+                { id: 5, name: "Li Wei", status: "Active", hr: 70, temp: 36 },
+            ];
+
+            const workerListEl = document.getElementById('worker-list');
+            
+            function renderWorkers() {
+                workerListEl.innerHTML = '';
+                workers.forEach(worker => {
+                    const div = document.createElement('div');
+                    div.className = `worker-item ${worker.status === 'Warning' ? 'active' : ''}`;
+                    div.innerHTML = `
+                        <img src="https://picsum.photos/seed/${worker.name}/50/50" class="avatar" alt="worker">
+                        <div class="worker-info">
+                            <h5>${worker.name}</h5>
+                            <p>${worker.status}</p>
+                        </div>
+                        <div style="margin-left:auto; font-family:'JetBrains Mono'; font-size:0.7rem; color: ${worker.hr > 100 ? 'var(--accent-red)' : 'var(--accent-green)'}">
+                            ${worker.hr} BPM
+                        </div>
+                    `;
+                    workerListEl.appendChild(div);
+                });
+            }
+            renderWorkers();
+
+            // Chart Logic (Canvas)
+            const canvas = document.getElementById('iotChart');
+            const ctx = canvas.getContext('2d');
+            
+            // Resize canvas
+            function resizeCanvas() {
+                canvas.width = canvas.parentElement.offsetWidth;
+                canvas.height = canvas.parentElement.offsetHeight;
+            }
+            window.addEventListener('resize', resizeCanvas);
+            resizeCanvas();
+
+            let dataPoints = new Array(50).fill(20); // Initial data
+            let tick = 0;
+
+            function drawChart() {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                const prev = dataPoints[dataPoints.length - 1];
+                let next = prev + (Math.random() - 0.5) * 5;
+                if (next < 5) next = 5;
+                if (next > 100) next = 100;
+                dataPoints.shift();
+                dataPoints.push(next);
+                document.getElementById('val-gas').innerText = Math.round(next);
+                ctx.beginPath();
+                ctx.strokeStyle = '#3b82f6';
+                ctx.lineWidth = 3;
+                ctx.lineCap = 'round';
+                ctx.lineJoin = 'round';
+                const stepX = canvas.width / (dataPoints.length - 1);
+                const gradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
+                gradient.addColorStop(0, 'rgba(59, 130, 246, 0.2)');
+                gradient.addColorStop(1, 'rgba(59, 130, 246, 0)');
+                ctx.moveTo(0, canvas.height - (dataPoints[0] / 120) * canvas.height);
+                for(let i = 1; i < dataPoints.length; i++) {
+                    const x = i * stepX;
+                    const y = canvas.height - (dataPoints[i] / 120) * canvas.height;
+                    ctx.lineTo(x, y);
+                }
+                ctx.stroke();
+                ctx.lineTo(canvas.width, canvas.height);
+                ctx.lineTo(0, canvas.height);
+                ctx.fillStyle = gradient;
+                ctx.fill();
+                ctx.beginPath();
+                ctx.strokeStyle = 'rgba(239, 68, 68, 0.5)';
+                ctx.lineWidth = 1;
+                ctx.setLineDash([5, 5]);
+                const thresholdY = canvas.height - (80 / 120) * canvas.height;
+                ctx.moveTo(0, thresholdY);
+                ctx.lineTo(canvas.width, thresholdY);
+                ctx.stroke();
+                ctx.setLineDash([]);
+                requestAnimationFrame(drawChart);
+            }
+            drawChart();
+            setInterval(() => {
+                const bpm = 70 + Math.floor(Math.random() * 15);
+                const temp = (36 + Math.random()).toFixed(1);
+                document.getElementById('val-bpm').innerText = bpm;
+                document.getElementById('val-temp').innerText = temp + "°C";
+            }, 2000);
+            // AI Logger Simulation
+            const logContainer = document.getElementById('ai-logs');
+            const logMessages = [
+                "Scanning Zone A...",
+                "Packet received from Node #22",
+                "Thermal anomaly check: Negative",
+                "Worker #392 proximity alert",
+                "Data sync complete with Cloud",
+                "Gas level fluctuation detected",
+                "Analyzing heart rate pattern..."
+            ];
+            setInterval(() => {
+                const msg = logMessages[Math.floor(Math.random() * logMessages.length)];
+                const time = new Date().toLocaleTimeString('en-US', {hour12: false});
+                const div = document.createElement('div');
+                div.className = 'log-entry';
+                div.innerHTML = `<span>[${time}]</span> ${msg}`;
+                logContainer.appendChild(div);
+                // Keep only last 8 logs
+                if(logContainer.children.length > 8) {
+                    logContainer.removeChild(logContainer.firstChild);
+                }
+                logContainer.scrollTop = logContainer.scrollHeight;
+            }, 1500);
+            const chatToggle = document.getElementById('chat-toggle');
+            const chatWindow = document.getElementById('chat-window');
+            const chatClose = document.getElementById('chat-close');
+            const chatInput = document.getElementById('chat-input');
+            const chatSend = document.getElementById('chat-send');
+            const chatBody = document.getElementById('chat-body');
+            chatToggle.addEventListener('click', () => {
+                chatWindow.style.display = 'flex';
+                chatToggle.style.display = 'none';
+            });
+            chatClose.addEventListener('click', () => {
+                chatWindow.style.display = 'none';
+                chatToggle.style.display = 'flex';
+            });
+            function addMessage(text, sender) {
+                const div = document.createElement('div');
+                div.className = `message msg-${sender}`;
+                div.innerText = text;
+                chatBody.appendChild(div);
+                chatBody.scrollTop = chatBody.scrollHeight;
+            }
+            function handleChat() {
+                const txt = chatInput.value.trim();
+                if(!txt) return;
+                addMessage(txt, 'user');
+                chatInput.value = '';
+                setTimeout(() => {
+                    let response = "I am not sure about that. Try asking about 'gas sensors' or 'sos features'.";
+                    const lower = txt.toLowerCase();
+                    if(lower.includes('gas') || lower.includes('sensor')) {
+                        response = "Our system detects H2S, Methane, and CO2 in real-time. If levels exceed 10ppm, the helmet vibrates and the dashboard triggers an alarm.";
+                    } else if(lower.includes('sos') || lower.includes('emergency')) {
+                        response = "Workers can press the physical SOS button on the chest unit for 3 seconds. This sends an immediate high-priority alert with GPS coordinates to the control center.";
+                    } else if(lower.includes('battery') || lower.includes('life')) {
+                        response = "The Guardian Helmet X1 has a 12-hour battery life with hot-swappable cells, ensuring 24/7 operation capabilities.";
+                    } else if(lower.includes('price') || lower.includes('cost')) {
+                        response = "Pricing depends on the fleet size. I can connect you to a sales representative if you'd like to schedule a demo.";
+                    }
+                    addMessage(response, 'bot');
+                }, 800);
+            }
+            chatSend.addEventListener('click', handleChat);
+            chatInput.addEventListener('keypress', (e) => {
+                if(e.key === 'Enter') handleChat();
+            });
+            window.triggerEmergencySim = function() {
+                const toast = document.createElement('div');
+                toast.className = 'toast alert';
+                toast.innerHTML = `
+                    <div style="font-size: 1.5rem; color: var(--accent-red);"><i class="fa-solid fa-triangle-exclamation"></i></div>
+                    <div>
+                        <div class="toast-title">SOS TRIGGERED</div>
+                        <div class="toast-msg">Worker #492 - Fall Detected. Zone: Sector 4</div>
+                    </div>
+                `;
+                const container = document.getElementById('toast-container');
+                container.appendChild(toast);
+                dataPoints[48] = 150; 
+                dataPoints[49] = 150;
+                const div = document.createElement('div');
+                div.className = 'log-entry';
+                div.style.color = 'var(--accent-red)';
+                div.innerHTML = `<span>[CRITICAL]</span> FALL DETECTED WORKER #492`;
+                logContainer.appendChild(div);
+                // Remove toast after 5s
+                setTimeout(() => {
+                    toast.style.opacity = '0';
+                    toast.style.transform = 'translateX(100px)';
+                    setTimeout(() => toast.remove(), 300);
+                }, 5000);
+            }
+        });
+    </script>
+</body>
+</html>

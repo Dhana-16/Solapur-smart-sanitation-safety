@@ -1,0 +1,1130 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Solapur Municipal Corporation | Citizen Registration Portal</title>
+    
+    <!-- External Assets: Fonts & GSAP -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Lato:wght@300;400;700&family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    
+    <style>
+        /* =========================================
+           1. CORE VARIABLES & RESET
+           ========================================= */
+        :root {
+            /* Palette: Ink & Parchment */
+            --color-bg: #ffffff;
+            --color-ink-primary: #0a192f; /* Dark Ink Blue */
+            --color-ink-secondary: #172a45; /* Slightly lighter for borders */
+            --color-ink-accent: #3d6cb9; /* Royal Blue for active states */
+            --color-error: #c92a2a;
+            --color-success: #2b8a3e;
+            --color-subtle: #f8f9fa;
+            
+            /* Typography */
+            --font-serif: 'Playfair Display', serif;
+            --font-sans: 'Lato', sans-serif;
+            
+            /* Spacing & Layout */
+            --border-radius: 4px; /* Sharp, elegant corners */
+            --container-width: 800px;
+            --transition-ease: cubic-bezier(0.23, 1, 0.32, 1); /* Elegant ease */
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            outline: none;
+        }
+
+        body {
+            background-color: var(--color-bg);
+            color: var(--color-ink-primary);
+            font-family: var(--font-sans);
+            line-height: 1.6;
+            overflow-x: hidden;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+        }
+
+        /* Ambient Background Decoration */
+        .bg-pattern {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: radial-gradient(var(--color-ink-primary) 0.5px, transparent 0.5px);
+            background-size: 40px 40px;
+            opacity: 0.03;
+            z-index: -1;
+            pointer-events: none;
+        }
+
+        /* =========================================
+           2. TYPOGRAPHY & HEADER
+           ========================================= */
+        header {
+            text-align: center;
+            padding: 3rem 1rem 2rem;
+            opacity: 0; /* JS Fade in */
+        }
+
+        h1 {
+            font-family: var(--font-serif);
+            font-size: 2.5rem;
+            font-weight: 700;
+            letter-spacing: -0.02em;
+            color: var(--color-ink-primary);
+            margin-bottom: 0.5rem;
+            position: relative;
+            display: inline-block;
+        }
+
+        h1::after {
+            content: '';
+            display: block;
+            width: 60px;
+            height: 3px;
+            background-color: var(--color-ink-accent);
+            margin: 10px auto 0;
+        }
+
+        .subtitle {
+            font-family: var(--font-serif);
+            font-style: italic;
+            color: var(--color-ink-secondary);
+            font-size: 1.1rem;
+        }
+
+        /* =========================================
+           3. LAYOUT CONTAINER
+           ========================================= */
+        main {
+            flex: 1;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            padding: 2rem 1rem;
+        }
+
+        .registration-card {
+            width: 100%;
+            max-width: var(--container-width);
+            background: #fff;
+            border: 1px solid var(--color-ink-secondary);
+            box-shadow: 0 20px 60px rgba(10, 25, 47, 0.08);
+            padding: 3rem;
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* =========================================
+           4. PROGRESS STEPPER
+           ========================================= */
+        .stepper {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 3rem;
+            position: relative;
+        }
+
+        .stepper::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 0;
+            width: 100%;
+            height: 1px;
+            background-color: #e0e0e0;
+            z-index: 0;
+            transform: translateY(-50%);
+        }
+
+        .step {
+            position: relative;
+            z-index: 1;
+            text-align: center;
+            cursor: default;
+        }
+
+        .step-circle {
+            width: 40px;
+            height: 40px;
+            background-color: #fff;
+            border: 2px solid #e0e0e0;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 0.5rem;
+            font-weight: 700;
+            color: #999;
+            transition: all 0.4s var(--transition-ease);
+            font-family: var(--font-serif);
+        }
+
+        .step.active .step-circle {
+            border-color: var(--color-ink-primary);
+            background-color: var(--color-ink-primary);
+            color: #fff;
+            box-shadow: 0 0 0 4px rgba(10, 25, 47, 0.1);
+        }
+
+        .step.completed .step-circle {
+            border-color: var(--color-ink-primary);
+            color: var(--color-ink-primary);
+        }
+
+        .step-label {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: #888;
+            font-weight: 700;
+        }
+
+        .step.active .step-label {
+            color: var(--color-ink-primary);
+        }
+
+        /* Progress Line Animation */
+        .progress-line {
+            position: absolute;
+            top: 50%;
+            left: 0;
+            height: 2px;
+            background-color: var(--color-ink-primary);
+            z-index: 0;
+            transform: translateY(-50%);
+            width: 0%; /* JS Control */
+            transition: width 0.6s var(--transition-ease);
+        }
+
+        /* =========================================
+           5. FORM INPUTS & FIELDS
+           ========================================= */
+        .form-section {
+            display: none; /* Hidden by default */
+            animation-duration: 0.6s;
+            animation-fill-mode: both;
+        }
+
+        .form-section.active {
+            display: block;
+        }
+
+        .input-group {
+            margin-bottom: 1.5rem;
+            position: relative;
+        }
+
+        .row {
+            display: flex;
+            gap: 1.5rem;
+        }
+
+        .col {
+            flex: 1;
+        }
+
+        label {
+            display: block;
+            font-size: 0.85rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+            color: var(--color-ink-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        /* Elegant Inputs */
+        input[type="text"],
+        input[type="email"],
+        input[type="tel"],
+        input[type="date"],
+        input[type="number"],
+        select,
+        textarea {
+            width: 100%;
+            padding: 1rem;
+            background-color: var(--color-subtle);
+            border: 1px solid transparent;
+            border-bottom: 2px solid #d1d5db;
+            font-family: var(--font-sans);
+            font-size: 1rem;
+            color: var(--color-ink-primary);
+            transition: all 0.3s ease;
+            border-radius: var(--border-radius) var(--border-radius) 0 0;
+        }
+
+        input:focus,
+        select:focus,
+        textarea:focus {
+            background-color: #fff;
+            border-bottom-color: var(--color-ink-primary);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.03);
+        }
+
+        textarea {
+            resize: vertical;
+            min-height: 100px;
+        }
+
+        /* Profile Picture Upload */
+        .profile-upload-container {
+            display: flex;
+            align-items: center;
+            gap: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .profile-preview {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            border: 2px dashed var(--color-ink-secondary);
+            background-color: var(--color-subtle);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            position: relative;
+            transition: all 0.3s ease;
+        }
+
+        .profile-preview img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            opacity: 0; /* Hidden until loaded */
+            transition: opacity 0.3s;
+        }
+
+        .profile-preview.has-image {
+            border-style: solid;
+            border-color: var(--color-ink-primary);
+        }
+
+        .profile-preview.has-image img {
+            opacity: 1;
+        }
+
+        .upload-btn-wrapper {
+            position: relative;
+            overflow: hidden;
+            display: inline-block;
+        }
+
+        .btn-upload {
+            border: 1px solid var(--color-ink-primary);
+            color: var(--color-ink-primary);
+            background-color: transparent;
+            padding: 0.5rem 1.5rem;
+            border-radius: 30px;
+            font-size: 0.85rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-transform: uppercase;
+        }
+
+        .btn-upload:hover {
+            background-color: var(--color-ink-primary);
+            color: #fff;
+        }
+
+        .upload-btn-wrapper input[type=file] {
+            font-size: 100px;
+            position: absolute;
+            left: 0;
+            top: 0;
+            opacity: 0;
+            cursor: pointer;
+            width: 100%;
+            height: 100%;
+        }
+
+        /* Radio & Checkbox Groups */
+        .radio-group {
+            display: flex;
+            gap: 1.5rem;
+        }
+
+        .custom-radio {
+            display: flex;
+            align-items: center;
+            cursor: pointer;
+            position: relative;
+            padding-left: 2rem;
+        }
+
+        .custom-radio input {
+            position: absolute;
+            opacity: 0;
+            cursor: pointer;
+        }
+
+        .checkmark {
+            position: absolute;
+            left: 0;
+            top: 50%;
+            transform: translateY(-50%);
+            height: 18px;
+            width: 18px;
+            background-color: #fff;
+            border: 2px solid var(--color-ink-secondary);
+            border-radius: 50%;
+            transition: all 0.2s;
+        }
+
+        .custom-radio:hover input ~ .checkmark {
+            border-color: var(--color-ink-primary);
+        }
+
+        .custom-radio input:checked ~ .checkmark {
+            background-color: var(--color-ink-primary);
+            border-color: var(--color-ink-primary);
+        }
+
+        .checkmark:after {
+            content: "";
+            position: absolute;
+            display: none;
+        }
+
+        .custom-radio input:checked ~ .checkmark:after {
+            display: block;
+        }
+
+        .custom-radio .checkmark:after {
+            top: 4px;
+            left: 4px;
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: white;
+        }
+
+        /* Health Conditions Tags */
+        .health-options {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+        }
+
+        .health-tag {
+            padding: 0.5rem 1rem;
+            border: 1px solid #d1d5db;
+            border-radius: 20px;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-size: 0.85rem;
+            user-select: none;
+        }
+
+        .health-tag.selected {
+            background-color: var(--color-ink-primary);
+            color: #fff;
+            border-color: var(--color-ink-primary);
+        }
+
+        /* =========================================
+           6. NAVIGATION BUTTONS
+           ========================================= */
+        .form-actions {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 3rem;
+            padding-top: 2rem;
+            border-top: 1px solid #eee;
+        }
+
+        .btn {
+            padding: 1rem 2.5rem;
+            font-family: var(--font-serif);
+            font-weight: 700;
+            font-size: 1rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            cursor: pointer;
+            transition: all 0.3s var(--transition-ease);
+            border: none;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn-secondary {
+            background: transparent;
+            color: #888;
+        }
+
+        .btn-secondary:hover {
+            color: var(--color-ink-primary);
+        }
+
+        .btn-primary {
+            background-color: var(--color-ink-primary);
+            color: #fff;
+            box-shadow: 0 4px 15px rgba(10, 25, 47, 0.3);
+        }
+
+        .btn-primary:hover {
+            background-color: var(--color-ink-accent);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(10, 25, 47, 0.4);
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            pointer-events: none;
+        }
+
+        /* =========================================
+           7. TOAST NOTIFICATION (No Alerts)
+           ========================================= */
+        .toast-container {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            z-index: 1000;
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .toast {
+            background: #fff;
+            border-left: 4px solid var(--color-ink-primary);
+            padding: 1rem 1.5rem;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            min-width: 300px;
+            transform: translateX(120%);
+            opacity: 0;
+            border-radius: 2px;
+        }
+
+        .toast.show {
+            transform: translateX(0);
+            opacity: 1;
+        }
+
+        .toast.error { border-left-color: var(--color-error); }
+        .toast.success { border-left-color: var(--color-success); }
+
+        .toast-msg {
+            font-size: 0.9rem;
+            font-weight: 600;
+        }
+
+        /* =========================================
+           8. SUMMARY & CONFIRMATION
+           ========================================= */
+        .summary-list {
+            list-style: none;
+        }
+
+        .summary-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 1rem 0;
+            border-bottom: 1px solid #f0f0f0;
+        }
+
+        .summary-key {
+            font-weight: 700;
+            color: #888;
+            text-transform: uppercase;
+            font-size: 0.8rem;
+        }
+
+        .summary-value {
+            font-family: var(--font-serif);
+            font-size: 1.1rem;
+            text-align: right;
+        }
+
+        /* =========================================
+           RESPONSIVENESS
+           ========================================= */
+        @media (max-width: 768px) {
+            h1 { font-size: 1.8rem; }
+            .registration-card { padding: 1.5rem; }
+            .row { flex-direction: column; gap: 0; }
+            .step-label { display: none; } /* Hide labels on mobile */
+            .stepper { margin-bottom: 2rem; }
+            .profile-upload-container { flex-direction: column; text-align: center; }
+            .upload-btn-wrapper { width: 100%; }
+            .btn-upload { width: 100%; display: block; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="bg-pattern"></div>
+
+    <header>
+        <h1>Solapur Municipal Corporation</h1>
+        <div class="subtitle">Department of Human Resources & Civic Administration</div>
+        <div style="margin-top: 5px; font-size: 0.8rem; color: #999; letter-spacing: 0.1em; text-transform: uppercase;">Distinguished Personnel Registration Portal</div>
+    </header>
+
+    <main>
+        <div class="registration-card">
+            <!-- Progress Stepper -->
+            <div class="stepper">
+                <div class="progress-line" id="progressLine"></div>
+                <div class="step active" data-step="1">
+                    <div class="step-circle">I</div>
+                    <div class="step-label">Identity</div>
+                </div>
+                <div class="step" data-step="2">
+                    <div class="step-circle">II</div>
+                    <div class="step-label">Residence</div>
+                </div>
+                <div class="step" data-step="3">
+                    <div class="step-circle">III</div>
+                    <div class="step-label">Proficiency</div>
+                </div>
+                <div class="step" data-step="4">
+                    <div class="step-circle">IV</div>
+                    <div class="step-label">Vitality</div>
+                </div>
+                <div class="step" data-step="5">
+                    <div class="step-circle">V</div>
+                    <div class="step-label">Finalize</div>
+                </div>
+            </div>
+
+            <form id="smcForm" onsubmit="return false;">
+                
+                <!-- SECTION 1: IDENTITY -->
+                <div class="form-section active" id="step1">
+                    <h2 style="font-family: var(--font-serif); margin-bottom: 1.5rem;">Personal Identification</h2>
+                    
+                    <div class="profile-upload-container">
+                        <div class="profile-preview" id="profilePreview">
+                            <span style="font-size: 2rem; color: #ccc;">📷</span>
+                            <img id="profileImg" src="" alt="Profile Avatar">
+                        </div>
+                        <div>
+                            <div class="upload-btn-wrapper">
+                                <button class="btn-upload" type="button">Transmit Digital Avatar</button>
+                                <input type="file" id="profilePic" accept="image/*" onchange="previewImage(event)">
+                            </div>
+                            <div style="font-size: 0.75rem; color: #888; margin-top: 0.5rem; max-width: 200px;">
+                                Accepted formats: JPEG, PNG. Max size: 2MB.
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="input-group">
+                        <label for="fullName">Appellation / Full Designation</label>
+                        <input type="text" id="fullName" placeholder="Ex: Rahul Deshmukh" required>
+                    </div>
+
+                    <div class="row">
+                        <div class="col input-group">
+                            <label for="dob">Date of Birth</label>
+                            <input type="date" id="dob" onchange="calculateAge()" required>
+                        </div>
+                        <div class="col input-group">
+                            <label for="age">Chronological Age</label>
+                            <input type="number" id="age" placeholder="Years" readonly style="background-color: #f0f0f0; cursor: not-allowed;">
+                        </div>
+                    </div>
+
+                    <div class="input-group">
+                        <label>Gender Identity</label>
+                        <div class="radio-group">
+                            <label class="custom-radio">Male
+                                <input type="radio" name="gender" value="Male">
+                                <span class="checkmark"></span>
+                            </label>
+                            <label class="custom-radio">Female
+                                <input type="radio" name="gender" value="Female">
+                                <span class="checkmark"></span>
+                            </label>
+                            <label class="custom-radio">Other
+                                <input type="radio" name="gender" value="Other">
+                                <span class="checkmark"></span>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- SECTION 2: RESIDENCE -->
+                <div class="form-section" id="step2">
+                    <h2 style="font-family: var(--font-serif); margin-bottom: 1.5rem;">Residential Coordinates</h2>
+
+                    <div class="row">
+                        <div class="col input-group">
+                            <label for="zone">Administrative Zone</label>
+                            <select id="zone" required>
+                                <option value="" disabled selected>Select Zone</option>
+                                <option value="Zone A">Zone A (Central)</option>
+                                <option value="Zone B">Zone B (North)</option>
+                                <option value="Zone C">Zone C (South)</option>
+                                <option value="Zone D">Zone D (East)</option>
+                            </select>
+                        </div>
+                        <div class="col input-group">
+                            <label for="ward">Ward Number</label>
+                            <input type="text" id="ward" placeholder="Ex: Ward 12" required>
+                        </div>
+                    </div>
+
+                    <div class="input-group">
+                        <label for="address">Permanent Address Line</label>
+                        <textarea id="address" placeholder="House No, Street Name, Locality, Solapur - 41300X" required></textarea>
+                    </div>
+
+                    <div class="input-group">
+                        <label for="mobile">Mobile Communication Number</label>
+                        <input type="tel" id="mobile" placeholder="+91 98765 43210" pattern="[0-9]{10}" required>
+                        <small style="color: #888; font-size: 0.7rem;">Standard 10-digit Indian mobile protocol</small>
+                    </div>
+                </div>
+
+                <!-- SECTION 3: PROFICIENCY -->
+                <div class="form-section" id="step3">
+                    <h2 style="font-family: var(--font-serif); margin-bottom: 1.5rem;">Professional Capacities</h2>
+
+                    <div class="input-group">
+                        <label for="designation">Job Designation / Role</label>
+                        <select id="designation" required>
+                            <option value="" disabled selected>Select Role</option>
+                            <option value="Sanitary Inspector">Sanitary Inspector</option>
+                            <option value="Civil Engineer">Civil Engineer</option>
+                            <option value="Medical Officer">Medical Officer</option>
+                            <option value="Administrative Staff">Administrative Staff</option>
+                            <option value="Field Worker">Field Worker</option>
+                        </select>
+                    </div>
+
+                    <div class="input-group">
+                        <label for="experience">Professional Tenure (Years)</label>
+                        <input type="number" id="experience" placeholder="0" min="0" required>
+                    </div>
+
+                    <div class="input-group">
+                        <label for="skills">Relevant Expertise & Skills</label>
+                        <textarea id="skills" placeholder="Detail your proficiencies, certifications, and prior civic engagement..." required></textarea>
+                    </div>
+                </div>
+
+                <!-- SECTION 4: VITALITY & EMERGENCY -->
+                <div class="form-section" id="step4">
+                    <h2 style="font-family: var(--font-serif); margin-bottom: 1.5rem;">Health & Emergency Protocol</h2>
+
+                    <div class="input-group">
+                        <label>Pre-existing Health Conditions (Select all applicable)</label>
+                        <div class="health-options" id="healthContainer">
+                            <div class="health-tag" onclick="toggleHealth(this)">Diabetes</div>
+                            <div class="health-tag" onclick="toggleHealth(this)">Hypertension</div>
+                            <div class="health-tag" onclick="toggleHealth(this)">Cardiac Issues</div>
+                            <div class="health-tag" onclick="toggleHealth(this)">Asthma</div>
+                            <div class="health-tag" onclick="toggleHealth(this)">None</div>
+                        </div>
+                        <input type="hidden" id="healthConditions">
+                    </div>
+
+                    <div style="border-top: 1px dashed #ccc; margin: 2rem 0;"></div>
+
+                    <h3 style="font-family: var(--font-serif); font-size: 1.2rem; margin-bottom: 1rem;">Emergency Contact</h3>
+                    
+                    <div class="input-group">
+                        <label for="eName">Contact Person Name</label>
+                        <input type="text" id="eName" placeholder="Guardian/Spouse Name" required>
+                    </div>
+
+                    <div class="input-group">
+                        <label for="eRelation">Relationship</label>
+                        <input type="text" id="eRelation" placeholder="Ex: Spouse, Parent, Sibling" required>
+                    </div>
+
+                    <div class="input-group">
+                        <label for="eMobile">Emergency Mobile Number</label>
+                        <input type="tel" id="eMobile" pattern="[0-9]{10}" placeholder="+91 XXXXX XXXXX" required>
+                    </div>
+                </div>
+
+                <!-- SECTION 5: FINALIZE -->
+                <div class="form-section" id="step5">
+                    <h2 style="font-family: var(--font-serif); margin-bottom: 1.5rem;">Review & Attestation</h2>
+                    
+                    <p style="margin-bottom: 1.5rem; color: #666;">Kindly scrutinize the furnished information below. Upon submission, this data shall be encrypted and transmitted to the Solapur Municipal Corporation Database.</p>
+
+                    <ul class="summary-list" id="summaryList">
+                    </ul>
+
+                    <div class="input-group" style="margin-top: 2rem;">
+                        <label class="custom-radio">
+                            <input type="checkbox" id="terms" required>
+                            <span class="checkmark" style="border-radius: 4px;"></span>
+                            <span style="font-size: 0.9rem; font-weight: 400; color: var(--color-ink-primary);">I hereby attest that the provided information is bona fide and accurate to the best of my knowledge.</span>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Navigation -->
+                <div class="form-actions">
+                    <button type="button" class="btn btn-secondary" id="prevBtn" onclick="navigate(-1)" disabled>Retreat</button>
+                    <button type="button" class="btn btn-primary" id="nextBtn" onclick="window.location.href='/login'">Proceed</button>
+                </div>
+            </form>
+        </div>
+    </main>
+
+    <!-- Toast Container -->
+    <div class="toast-container" id="toastContainer"></div>
+
+    <script>
+        /* =========================================
+           LOGIC & ANIMATION CONTROLLER
+           ========================================= */
+        
+        // State Management
+        let currentStep = 1;
+        const totalSteps = 5;
+        let formData = {};
+        let selectedHealthConditions = [];
+
+        // DOM Elements
+        const sections = document.querySelectorAll('.form-section');
+        const steps = document.querySelectorAll('.step');
+        const progressLine = document.getElementById('progressLine');
+        const prevBtn = document.getElementById('prevBtn');
+        const nextBtn = document.getElementById('nextBtn');
+
+        // Initialization
+        document.addEventListener('DOMContentLoaded', () => {
+            // Initial GSAP Animations
+            const tl = gsap.timeline();
+            
+            tl.to('header', { opacity: 1, y: 0, duration: 1, ease: 'power3.out' })
+              .from('.registration-card', { 
+                  opacity: 0, 
+                  y: 50, 
+                  duration: 1, 
+                  ease: 'power3.out' 
+              }, "-=0.5")
+              .from('.step', { 
+                  opacity: 0, 
+                  y: -20, 
+                  stagger: 0.1, 
+                  duration: 0.8, 
+                  ease: 'back.out(1.7)' 
+              }, "-=0.5")
+              .from('#step1 .input-group', {
+                  opacity: 0,
+                  x: -20,
+                  stagger: 0.1,
+                  duration: 0.8
+              }, "-=0.5");
+        });
+
+        // Navigation Logic
+        function navigate(direction) {
+            // Validate current step before moving forward
+            if (direction === 1 && !validateStep(currentStep)) {
+                return;
+            }
+
+            // Collect data if moving forward
+            if (direction === 1) {
+                collectData();
+            }
+
+            const nextStep = currentStep + direction;
+
+            if (nextStep >= 1 && nextStep <= totalSteps) {
+                animateTransition(currentStep, nextStep, direction);
+                currentStep = nextStep;
+                updateUI();
+            }
+        }
+
+        // GSAP Transition Animation
+        function animateTransition(from, to, direction) {
+            const currentSection = document.getElementById(`step${from}`);
+            const nextSection = document.getElementById(`step${to}`);
+
+            const exitAnim = direction === 1 
+                ? { opacity: 0, x: -50, duration: 0.4, ease: 'power2.in' }
+                : { opacity: 0, x: 50, duration: 0.4, ease: 'power2.in' };
+
+            const enterAnim = direction === 1 
+                ? { startAt: { opacity: 0, x: 50 }, opacity: 1, x: 0, duration: 0.5, delay: 0.1, ease: 'power2.out' }
+                : { startAt: { opacity: 0, x: -50 }, opacity: 1, x: 0, duration: 0.5, delay: 0.1, ease: 'power2.out' };
+
+            gsap.to(currentSection, exitAnim);
+            gsap.to(nextSection, enterAnim);
+
+            // Stagger children for "Cute" effect
+            gsap.fromTo(`#step${to} .input-group`, 
+                { opacity: 0, y: 10 },
+                { opacity: 1, y: 0, stagger: 0.05, delay: direction === 1 ? 0.3 : 0.3, duration: 0.4 }
+            );
+        }
+
+        // Update UI (Buttons & Progress)
+        function updateUI() {
+            // Toggle visibility
+            sections.forEach(sec => sec.classList.remove('active'));
+            document.getElementById(`step${currentStep}`).classList.add('active');
+
+            // Update Stepper Circles
+            steps.forEach(step => {
+                const stepNum = parseInt(step.getAttribute('data-step'));
+                step.classList.remove('active', 'completed');
+                if (stepNum === currentStep) step.classList.add('active');
+                if (stepNum < currentStep) step.classList.add('completed');
+            });
+
+            // Update Progress Line
+            const progressPercentage = ((currentStep - 1) / (totalSteps - 1)) * 100;
+            gsap.to(progressLine, { width: `${progressPercentage}%`, duration: 0.6, ease: 'power2.out' });
+
+            // Update Buttons
+            prevBtn.disabled = currentStep === 1;
+            
+            if (currentStep === totalSteps) {
+                nextBtn.textContent = "Execute Registration";
+                nextBtn.classList.remove('btn-primary');
+                nextBtn.style.backgroundColor = "#2b8a3e"; // Success green for final
+                nextBtn.style.color = "#fff";
+                populateSummary();
+            } else {
+                nextBtn.textContent = "Proceed";
+                nextBtn.classList.add('btn-primary');
+                nextBtn.style.backgroundColor = ""; // Reset to CSS var
+                nextBtn.style.color = "";
+            }
+        }
+
+        // Validation Logic
+        function validateStep(step) {
+            const section = document.getElementById(`step${step}`);
+            const inputs = section.querySelectorAll('input[required], select[required], textarea[required]');
+            let isValid = true;
+
+            inputs.forEach(input => {
+                if (!input.value.trim()) {
+                    isValid = false;
+                    highlightError(input);
+                    // Shake animation
+                    gsap.fromTo(input, { x: -5 }, { x: 5, duration: 0.1, repeat: 5, yoyo: true });
+                } else if (input.type === 'tel' && input.value.length !== 10) {
+                    isValid = false;
+                    showToast('Invalid mobile number format', 'error');
+                    highlightError(input);
+                } else {
+                    clearError(input);
+                }
+            });
+
+            // Special Validation for Step 4 (Health)
+            if (step === 4) {
+                if (selectedHealthConditions.length === 0) {
+                    showToast('Please select health status', 'error');
+                    return false;
+                }
+            }
+
+            if (!isValid) {
+                showToast('Kindly complete all mandatory fields', 'error');
+            }
+
+            return isValid;
+        }
+
+        function highlightError(element) {
+            element.style.borderBottomColor = 'var(--color-error)';
+        }
+
+        function clearError(element) {
+            element.style.borderBottomColor = '#d1d5db';
+        }
+
+        // Data Collection
+        function collectData() {
+            formData.name = document.getElementById('fullName').value;
+            formData.dob = document.getElementById('dob').value;
+            formData.gender = document.querySelector('input[name="gender"]:checked')?.value || 'N/A';
+            formData.zone = document.getElementById('zone').value;
+            formData.ward = document.getElementById('ward').value;
+            formData.address = document.getElementById('address').value;
+            formData.mobile = document.getElementById('mobile').value;
+            formData.designation = document.getElementById('designation').value;
+            formData.experience = document.getElementById('experience').value;
+            formData.skills = document.getElementById('skills').value;
+            formData.health = selectedHealthConditions.join(', ');
+            formData.eName = document.getElementById('eName').value;
+            formData.eMobile = document.getElementById('eMobile').value;
+        }
+
+        // Populate Summary
+        function populateSummary() {
+            const list = document.getElementById('summaryList');
+            list.innerHTML = `
+                <li class="summary-item">
+                    <span class="summary-key">Applicant Name</span>
+                    <span class="summary-value">${formData.name}</span>
+                </li>
+                <li class="summary-item">
+                    <span class="summary-key">Designation</span>
+                    <span class="summary-value">${formData.designation}</span>
+                </li>
+                <li class="summary-item">
+                    <span class="summary-key">Zone / Ward</span>
+                    <span class="summary-value">${formData.zone}, ${formData.ward}</span>
+                </li>
+                <li class="summary-item">
+                    <span class="summary-key">Contact</span>
+                    <span class="summary-value">${formData.mobile}</span>
+                </li>
+                <li class="summary-item">
+                    <span class="summary-key">Experience</span>
+                    <span class="summary-value">${formData.experience} Years</span>
+                </li>
+            `;
+        }
+
+        // Specific Functionalities
+        
+        // Image Preview
+        function previewImage(event) {
+            const reader = new FileReader();
+            reader.onload = function(){
+                const output = document.getElementById('profileImg');
+                const previewBox = document.getElementById('profilePreview');
+                output.src = reader.result;
+                previewBox.classList.add('has-image');
+                
+                // Animate the icon out and image in
+                gsap.fromTo(output, {scale: 0.5, opacity: 0}, {scale: 1, opacity: 1, duration: 0.5, ease: "back.out(1.7)"});
+            };
+            if(event.target.files[0]){
+                reader.readAsDataURL(event.target.files[0]);
+            }
+        }
+
+        // Auto Age Calculation
+        function calculateAge() {
+            const dob = document.getElementById('dob').value;
+            if(dob) {
+                const dobDate = new Date(dob);
+                const diff = Date.now() - dobDate.getTime();
+                const ageDate = new Date(diff); 
+                const age = Math.abs(ageDate.getUTCFullYear() - 1970);
+                document.getElementById('age').value = age;
+                
+                // Subtle pop animation
+                gsap.from('#age', {scale: 1.2, duration: 0.2, ease: "power1.out"});
+            }
+        }
+
+        // Health Tag Toggling
+        function toggleHealth(element) {
+            if (element.classList.contains('selected')) {
+                element.classList.remove('selected');
+                const index = selectedHealthConditions.indexOf(element.innerText);
+                if (index > -1) selectedHealthConditions.splice(index, 1);
+            } else {
+                // Exclusive logic for "None"
+                if (element.innerText === 'None') {
+                    document.querySelectorAll('.health-tag').forEach(tag => tag.classList.remove('selected'));
+                    selectedHealthConditions = [];
+                } else {
+                    const noneTag = Array.from(document.querySelectorAll('.health-tag')).find(t => t.innerText === 'None');
+                    if(noneTag) noneTag.classList.remove('selected');
+                    const noneIndex = selectedHealthConditions.indexOf('None');
+                    if(noneIndex > -1) selectedHealthConditions.splice(noneIndex, 1);
+                }
+
+                element.classList.add('selected');
+                selectedHealthConditions.push(element.innerText);
+                
+                // Cute "pop" animation
+                gsap.to(element, {scale: 1.1, duration: 0.1, yoyo: true, repeat: 1});
+            }
+        }
+
+        // Custom Toast Notification
+        function showToast(message, type = 'success') {
+            const container = document.getElementById('toastContainer');
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`;
+            
+            const icon = type === 'success' ? '✓' : '⚠';
+            
+            toast.innerHTML = `
+                <div style="display:flex; align-items:center; gap: 10px;">
+                    <span style="font-weight:bold; font-size:1.2rem;">${icon}</span>
+                    <span class="toast-msg">${message}</span>
+                </div>
+            `;
+
+            container.appendChild(toast);
+
+            // Animate In
+            gsap.to(toast, {x: 0, opacity: 1, duration: 0.5, ease: "power3.out"});
+
+            // Remove after 3 seconds
+            setTimeout(() => {
+                gsap.to(toast, {
+                    x: 50, opacity: 0, duration: 0.3, 
+                    onComplete: () => toast.remove()
+                });
+            }, 3000);
+        }
+
+        // Final Submission Mock
+        nextBtn.addEventListener('click', function() {
+            if(currentStep === totalSteps) {
+                if(!document.getElementById('terms').checked) {
+                    showToast('Please accept the attestation', 'error');
+                    gsap.to('#terms', {scale: 1.1, duration: 0.1, yoyo: true, repeat: 1});
+                    return;
+                }
+                
+                const btn = this;
+                const originalText = btn.textContent;
+                
+                // Loading State
+                btn.textContent = "Encrypting & Transmitting...";
+                btn.disabled = true;
+                
+                // Mock API Call
+                setTimeout(() => {
+                    btn.textContent = "Registration Successful";
+                    btn.style.backgroundColor = "#2b8a3e";
+                    showToast('Welcome to Solapur Municipal Corporation', 'success');
+                    
+                    // Confetti or Celebration Animation
+                    gsap.to('header', {scale: 1.05, duration: 0.3, yoyo: true, repeat: 1});
+                    
+                    setTimeout(() => {
+                        alert("Data transmission complete. Redirecting to dashboard...");
+                        // location.reload(); // In a real app
+                    }, 1500);
+
+                }, 2000);
+            }
+        });
+
+    </script>
+</body>
+</html>
